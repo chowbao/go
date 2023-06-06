@@ -623,58 +623,16 @@ type XdrAnon_LiquidityPoolEntry_Body_ConstantProduct struct {
 	PoolSharesTrustLineCount Int64
 }
 
-type ContractLedgerEntryType int32
-
-const (
-	DATA_ENTRY           ContractLedgerEntryType = 0
-	EXPIRATION_EXTENSION ContractLedgerEntryType = 1
-)
-
-const MASK_CONTRACT_DATA_FLAGS_V20 = 0x1
-
-type ContractDataFlags int32
-
-const (
-	// When set, the given entry does not recieve automatic expiration bumps
-	// on access. Note that entries can still be bumped manually via the footprint.
-	NO_AUTOBUMP ContractDataFlags = ContractDataFlags(0x1)
-)
-
 type ContractDataEntry struct {
-	ContractID          Hash
-	Key                 SCVal
-	Type                ContractDataType
-	Body                XdrAnon_ContractDataEntry_Body
-	ExpirationLedgerSeq Uint32
-}
-type XdrAnon_ContractDataEntry_Body struct {
-	// The union discriminant LeType selects among the following arms:
-	//   DATA_ENTRY:
-	//      Data() *XdrAnon_ContractDataEntry_Body_Data
-	//   EXPIRATION_EXTENSION:
-	//      void
-	LeType ContractLedgerEntryType
-	_u     interface{}
-}
-type XdrAnon_ContractDataEntry_Body_Data struct {
-	Flags Uint32
-	Val   SCVal
+	ContractID Hash
+	Key        SCVal
+	Val        SCVal
 }
 
 type ContractCodeEntry struct {
-	Ext                 ExtensionPoint
-	Hash                Hash
-	Body                XdrAnon_ContractCodeEntry_Body
-	ExpirationLedgerSeq Uint32
-}
-type XdrAnon_ContractCodeEntry_Body struct {
-	// The union discriminant LeType selects among the following arms:
-	//   DATA_ENTRY:
-	//      Code() *[]byte
-	//   EXPIRATION_EXTENSION:
-	//      void
-	LeType ContractLedgerEntryType
-	_u     interface{}
+	Ext  ExtensionPoint
+	Hash Hash
+	Code []byte
 }
 
 type LedgerEntryExtensionV1 struct {
@@ -777,12 +735,9 @@ type XdrAnon_LedgerKey_LiquidityPool struct {
 type XdrAnon_LedgerKey_ContractData struct {
 	ContractID Hash
 	Key        SCVal
-	Type       ContractDataType
-	LeType     ContractLedgerEntryType
 }
 type XdrAnon_LedgerKey_ContractCode struct {
-	Hash   Hash
-	LeType ContractLedgerEntryType
+	Hash Hash
 }
 type XdrAnon_LedgerKey_ConfigSetting struct {
 	ConfigSettingID ConfigSettingID
@@ -1300,38 +1255,12 @@ type LedgerCloseMetaV1 struct {
 	ScpInfo []SCPHistoryEntry
 }
 
-type LedgerCloseMetaV2 struct {
-	// We forgot to add an ExtensionPoint in v1 but at least
-	// we can add one now in v2.
-	Ext          ExtensionPoint
-	LedgerHeader LedgerHeaderHistoryEntry
-	TxSet        GeneralizedTransactionSet
-	// NB: transactions are sorted in apply order here
-	// fees for all transactions are processed first
-	// followed by applying transactions
-	TxProcessing []TransactionResultMeta
-	// upgrades are applied last
-	UpgradesProcessing []UpgradeEntryMeta
-	// other misc information attached to the ledger close
-	ScpInfo []SCPHistoryEntry
-	// Size in bytes of BucketList, to support downstream
-	// systems calculating storage fees correctly.
-	TotalByteSizeOfBucketList Uint64
-	// Expired temp keys that are being evicted at this ledger.
-	EvictedTemporaryLedgerKeys []LedgerKey
-	// Expired restorable ledger entries that are being
-	// evicted at this ledger.
-	EvictedRestorableLedgerEntries []LedgerEntry
-}
-
 type LedgerCloseMeta struct {
 	// The union discriminant V selects among the following arms:
 	//   0:
 	//      V0() *LedgerCloseMetaV0
 	//   1:
 	//      V1() *LedgerCloseMetaV1
-	//   2:
-	//      V2() *LedgerCloseMetaV2
 	V  int32
 	_u interface{}
 }
@@ -3891,7 +3820,6 @@ const (
 	// and an address' nonce, respectively.
 	SCV_LEDGER_KEY_CONTRACT_EXECUTABLE SCValType = 20
 	SCV_LEDGER_KEY_NONCE               SCValType = 21
-	SCV_STORAGE_TYPE                   SCValType = 22
 )
 
 type SCErrorType int32
@@ -4005,15 +3933,6 @@ type SCAddress struct {
 	_u   interface{}
 }
 
-// Here due to circular dependency
-type ContractDataType int32
-
-const (
-	TEMPORARY ContractDataType = 0
-	MERGEABLE ContractDataType = 1
-	EXCLUSIVE ContractDataType = 2
-)
-
 const SCSYMBOL_LIMIT = 32
 
 type SCVec = []SCVal
@@ -4076,8 +3995,6 @@ type SCVal struct {
 	//      void
 	//   SCV_LEDGER_KEY_NONCE:
 	//      Nonce_key() *SCNonceKey
-	//   SCV_STORAGE_TYPE:
-	//      StorageType() *ContractDataType
 	Type SCValType
 	_u   interface{}
 }
@@ -4249,24 +4166,6 @@ type ContractCostParamEntry struct {
 	Ext ExtensionPoint
 }
 
-type StateExpirationSettings struct {
-	MaxEntryExpiration           Uint32
-	MinTempEntryExpiration       Uint32
-	MinRestorableEntryExpiration Uint32
-	AutoBumpLedgers              Uint32
-	// rent_fee = wfee_rate_average / rent_rate_denominator_for_type
-	RestorableRentRateDenominator Int64
-	TempRentRateDenominator       Int64
-	Ext                           XdrAnon_StateExpirationSettings_Ext
-}
-type XdrAnon_StateExpirationSettings_Ext struct {
-	// The union discriminant V selects among the following arms:
-	//   0:
-	//      void
-	V  int32
-	_u interface{}
-}
-
 // limits the ContractCostParams size to 20kB
 const CONTRACT_COST_COUNT_LIMIT = 1024
 
@@ -4286,7 +4185,6 @@ const (
 	CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES     ConfigSettingID = 7
 	CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES          ConfigSettingID = 8
 	CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES        ConfigSettingID = 9
-	CONFIG_SETTING_STATE_EXPIRATION                      ConfigSettingID = 10
 )
 
 type ConfigSettingEntry struct {
@@ -4311,8 +4209,6 @@ type ConfigSettingEntry struct {
 	//      ContractDataKeySizeBytes() *Uint32
 	//   CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES:
 	//      ContractDataEntrySizeBytes() *Uint32
-	//   CONFIG_SETTING_STATE_EXPIRATION:
-	//      StateExpirationSettings() *StateExpirationSettings
 	ConfigSettingID ConfigSettingID
 	_u              interface{}
 }
@@ -7763,209 +7659,6 @@ func (v *LiquidityPoolEntry) XdrRecurse(x XDR, name string) {
 }
 func XDR_LiquidityPoolEntry(v *LiquidityPoolEntry) *LiquidityPoolEntry { return v }
 
-var _XdrNames_ContractLedgerEntryType = map[int32]string{
-	int32(DATA_ENTRY):           "DATA_ENTRY",
-	int32(EXPIRATION_EXTENSION): "EXPIRATION_EXTENSION",
-}
-var _XdrValues_ContractLedgerEntryType = map[string]int32{
-	"DATA_ENTRY":           int32(DATA_ENTRY),
-	"EXPIRATION_EXTENSION": int32(EXPIRATION_EXTENSION),
-}
-
-func (ContractLedgerEntryType) XdrEnumNames() map[int32]string {
-	return _XdrNames_ContractLedgerEntryType
-}
-func (v ContractLedgerEntryType) String() string {
-	if s, ok := _XdrNames_ContractLedgerEntryType[int32(v)]; ok {
-		return s
-	}
-	return fmt.Sprintf("ContractLedgerEntryType#%d", v)
-}
-func (v *ContractLedgerEntryType) Scan(ss fmt.ScanState, _ rune) error {
-	if tok, err := ss.Token(true, XdrSymChar); err != nil {
-		return err
-	} else {
-		stok := string(tok)
-		if val, ok := _XdrValues_ContractLedgerEntryType[stok]; ok {
-			*v = ContractLedgerEntryType(val)
-			return nil
-		} else if stok == "ContractLedgerEntryType" {
-			if n, err := fmt.Fscanf(ss, "#%d", (*int32)(v)); n == 1 && err == nil {
-				return nil
-			}
-		}
-		return XdrError(fmt.Sprintf("%s is not a valid ContractLedgerEntryType.", stok))
-	}
-}
-func (v ContractLedgerEntryType) GetU32() uint32                 { return uint32(v) }
-func (v *ContractLedgerEntryType) SetU32(n uint32)               { *v = ContractLedgerEntryType(n) }
-func (v *ContractLedgerEntryType) XdrPointer() interface{}       { return v }
-func (ContractLedgerEntryType) XdrTypeName() string              { return "ContractLedgerEntryType" }
-func (v ContractLedgerEntryType) XdrValue() interface{}          { return v }
-func (v *ContractLedgerEntryType) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-
-type XdrType_ContractLedgerEntryType = *ContractLedgerEntryType
-
-func XDR_ContractLedgerEntryType(v *ContractLedgerEntryType) *ContractLedgerEntryType { return v }
-
-var _XdrNames_ContractDataFlags = map[int32]string{
-	int32(NO_AUTOBUMP): "NO_AUTOBUMP",
-}
-var _XdrValues_ContractDataFlags = map[string]int32{
-	"NO_AUTOBUMP": int32(NO_AUTOBUMP),
-}
-
-func (ContractDataFlags) XdrEnumNames() map[int32]string {
-	return _XdrNames_ContractDataFlags
-}
-func (v ContractDataFlags) String() string {
-	if s, ok := _XdrNames_ContractDataFlags[int32(v)]; ok {
-		return s
-	}
-	return fmt.Sprintf("ContractDataFlags#%d", v)
-}
-func (v *ContractDataFlags) Scan(ss fmt.ScanState, _ rune) error {
-	if tok, err := ss.Token(true, XdrSymChar); err != nil {
-		return err
-	} else {
-		stok := string(tok)
-		if val, ok := _XdrValues_ContractDataFlags[stok]; ok {
-			*v = ContractDataFlags(val)
-			return nil
-		} else if stok == "ContractDataFlags" {
-			if n, err := fmt.Fscanf(ss, "#%d", (*int32)(v)); n == 1 && err == nil {
-				return nil
-			}
-		}
-		return XdrError(fmt.Sprintf("%s is not a valid ContractDataFlags.", stok))
-	}
-}
-func (v ContractDataFlags) GetU32() uint32                 { return uint32(v) }
-func (v *ContractDataFlags) SetU32(n uint32)               { *v = ContractDataFlags(n) }
-func (v *ContractDataFlags) XdrPointer() interface{}       { return v }
-func (ContractDataFlags) XdrTypeName() string              { return "ContractDataFlags" }
-func (v ContractDataFlags) XdrValue() interface{}          { return v }
-func (v *ContractDataFlags) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-
-type XdrType_ContractDataFlags = *ContractDataFlags
-
-func XDR_ContractDataFlags(v *ContractDataFlags) *ContractDataFlags { return v }
-
-var _XdrComments_ContractDataFlags = map[int32]string{
-	int32(NO_AUTOBUMP): "When set, the given entry does not recieve automatic expiration bumps on access. Note that entries can still be bumped manually via the footprint.",
-}
-
-func (e ContractDataFlags) XdrEnumComments() map[int32]string {
-	return _XdrComments_ContractDataFlags
-}
-func (v *ContractDataFlags) XdrInitialize() {
-	switch ContractDataFlags(0) {
-	case NO_AUTOBUMP:
-	default:
-		if *v == ContractDataFlags(0) {
-			*v = NO_AUTOBUMP
-		}
-	}
-}
-
-type XdrType_XdrAnon_ContractDataEntry_Body_Data = *XdrAnon_ContractDataEntry_Body_Data
-
-func (v *XdrAnon_ContractDataEntry_Body_Data) XdrPointer() interface{} { return v }
-func (XdrAnon_ContractDataEntry_Body_Data) XdrTypeName() string {
-	return "XdrAnon_ContractDataEntry_Body_Data"
-}
-func (v XdrAnon_ContractDataEntry_Body_Data) XdrValue() interface{}          { return v }
-func (v *XdrAnon_ContractDataEntry_Body_Data) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-func (v *XdrAnon_ContractDataEntry_Body_Data) XdrRecurse(x XDR, name string) {
-	if name != "" {
-		name = x.Sprintf("%s.", name)
-	}
-	x.Marshal(x.Sprintf("%sflags", name), XDR_Uint32(&v.Flags))
-	x.Marshal(x.Sprintf("%sval", name), XDR_SCVal(&v.Val))
-}
-func XDR_XdrAnon_ContractDataEntry_Body_Data(v *XdrAnon_ContractDataEntry_Body_Data) *XdrAnon_ContractDataEntry_Body_Data {
-	return v
-}
-
-var _XdrTags_XdrAnon_ContractDataEntry_Body = map[int32]bool{
-	XdrToI32(DATA_ENTRY):           true,
-	XdrToI32(EXPIRATION_EXTENSION): true,
-}
-
-func (_ XdrAnon_ContractDataEntry_Body) XdrValidTags() map[int32]bool {
-	return _XdrTags_XdrAnon_ContractDataEntry_Body
-}
-func (u *XdrAnon_ContractDataEntry_Body) Data() *XdrAnon_ContractDataEntry_Body_Data {
-	switch u.LeType {
-	case DATA_ENTRY:
-		if v, ok := u._u.(*XdrAnon_ContractDataEntry_Body_Data); ok {
-			return v
-		} else {
-			var zero XdrAnon_ContractDataEntry_Body_Data
-			u._u = &zero
-			return &zero
-		}
-	default:
-		XdrPanic("XdrAnon_ContractDataEntry_Body.Data accessed when LeType == %v", u.LeType)
-		return nil
-	}
-}
-func (u XdrAnon_ContractDataEntry_Body) XdrValid() bool {
-	switch u.LeType {
-	case DATA_ENTRY, EXPIRATION_EXTENSION:
-		return true
-	}
-	return false
-}
-func (u *XdrAnon_ContractDataEntry_Body) XdrUnionTag() XdrNum32 {
-	return XDR_ContractLedgerEntryType(&u.LeType)
-}
-func (u *XdrAnon_ContractDataEntry_Body) XdrUnionTagName() string {
-	return "LeType"
-}
-func (u *XdrAnon_ContractDataEntry_Body) XdrUnionBody() XdrType {
-	switch u.LeType {
-	case DATA_ENTRY:
-		return XDR_XdrAnon_ContractDataEntry_Body_Data(u.Data())
-	case EXPIRATION_EXTENSION:
-		return nil
-	}
-	return nil
-}
-func (u *XdrAnon_ContractDataEntry_Body) XdrUnionBodyName() string {
-	switch u.LeType {
-	case DATA_ENTRY:
-		return "Data"
-	case EXPIRATION_EXTENSION:
-		return ""
-	}
-	return ""
-}
-
-type XdrType_XdrAnon_ContractDataEntry_Body = *XdrAnon_ContractDataEntry_Body
-
-func (v *XdrAnon_ContractDataEntry_Body) XdrPointer() interface{}       { return v }
-func (XdrAnon_ContractDataEntry_Body) XdrTypeName() string              { return "XdrAnon_ContractDataEntry_Body" }
-func (v XdrAnon_ContractDataEntry_Body) XdrValue() interface{}          { return v }
-func (v *XdrAnon_ContractDataEntry_Body) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-func (u *XdrAnon_ContractDataEntry_Body) XdrRecurse(x XDR, name string) {
-	if name != "" {
-		name = x.Sprintf("%s.", name)
-	}
-	XDR_ContractLedgerEntryType(&u.LeType).XdrMarshal(x, x.Sprintf("%sleType", name))
-	switch u.LeType {
-	case DATA_ENTRY:
-		x.Marshal(x.Sprintf("%sdata", name), XDR_XdrAnon_ContractDataEntry_Body_Data(u.Data()))
-		return
-	case EXPIRATION_EXTENSION:
-		return
-	}
-	XdrPanic("invalid LeType (%v) in XdrAnon_ContractDataEntry_Body", u.LeType)
-}
-func XDR_XdrAnon_ContractDataEntry_Body(v *XdrAnon_ContractDataEntry_Body) *XdrAnon_ContractDataEntry_Body {
-	return v
-}
-
 type XdrType_ContractDataEntry = *ContractDataEntry
 
 func (v *ContractDataEntry) XdrPointer() interface{}       { return v }
@@ -7978,90 +7671,9 @@ func (v *ContractDataEntry) XdrRecurse(x XDR, name string) {
 	}
 	x.Marshal(x.Sprintf("%scontractID", name), XDR_Hash(&v.ContractID))
 	x.Marshal(x.Sprintf("%skey", name), XDR_SCVal(&v.Key))
-	x.Marshal(x.Sprintf("%stype", name), XDR_ContractDataType(&v.Type))
-	x.Marshal(x.Sprintf("%sbody", name), XDR_XdrAnon_ContractDataEntry_Body(&v.Body))
-	x.Marshal(x.Sprintf("%sexpirationLedgerSeq", name), XDR_Uint32(&v.ExpirationLedgerSeq))
+	x.Marshal(x.Sprintf("%sval", name), XDR_SCVal(&v.Val))
 }
 func XDR_ContractDataEntry(v *ContractDataEntry) *ContractDataEntry { return v }
-
-var _XdrTags_XdrAnon_ContractCodeEntry_Body = map[int32]bool{
-	XdrToI32(DATA_ENTRY):           true,
-	XdrToI32(EXPIRATION_EXTENSION): true,
-}
-
-func (_ XdrAnon_ContractCodeEntry_Body) XdrValidTags() map[int32]bool {
-	return _XdrTags_XdrAnon_ContractCodeEntry_Body
-}
-func (u *XdrAnon_ContractCodeEntry_Body) Code() *[]byte {
-	switch u.LeType {
-	case DATA_ENTRY:
-		if v, ok := u._u.(*[]byte); ok {
-			return v
-		} else {
-			var zero []byte
-			u._u = &zero
-			return &zero
-		}
-	default:
-		XdrPanic("XdrAnon_ContractCodeEntry_Body.Code accessed when LeType == %v", u.LeType)
-		return nil
-	}
-}
-func (u XdrAnon_ContractCodeEntry_Body) XdrValid() bool {
-	switch u.LeType {
-	case DATA_ENTRY, EXPIRATION_EXTENSION:
-		return true
-	}
-	return false
-}
-func (u *XdrAnon_ContractCodeEntry_Body) XdrUnionTag() XdrNum32 {
-	return XDR_ContractLedgerEntryType(&u.LeType)
-}
-func (u *XdrAnon_ContractCodeEntry_Body) XdrUnionTagName() string {
-	return "LeType"
-}
-func (u *XdrAnon_ContractCodeEntry_Body) XdrUnionBody() XdrType {
-	switch u.LeType {
-	case DATA_ENTRY:
-		return XdrVecOpaque{u.Code(), 0xffffffff}
-	case EXPIRATION_EXTENSION:
-		return nil
-	}
-	return nil
-}
-func (u *XdrAnon_ContractCodeEntry_Body) XdrUnionBodyName() string {
-	switch u.LeType {
-	case DATA_ENTRY:
-		return "Code"
-	case EXPIRATION_EXTENSION:
-		return ""
-	}
-	return ""
-}
-
-type XdrType_XdrAnon_ContractCodeEntry_Body = *XdrAnon_ContractCodeEntry_Body
-
-func (v *XdrAnon_ContractCodeEntry_Body) XdrPointer() interface{}       { return v }
-func (XdrAnon_ContractCodeEntry_Body) XdrTypeName() string              { return "XdrAnon_ContractCodeEntry_Body" }
-func (v XdrAnon_ContractCodeEntry_Body) XdrValue() interface{}          { return v }
-func (v *XdrAnon_ContractCodeEntry_Body) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-func (u *XdrAnon_ContractCodeEntry_Body) XdrRecurse(x XDR, name string) {
-	if name != "" {
-		name = x.Sprintf("%s.", name)
-	}
-	XDR_ContractLedgerEntryType(&u.LeType).XdrMarshal(x, x.Sprintf("%sleType", name))
-	switch u.LeType {
-	case DATA_ENTRY:
-		x.Marshal(x.Sprintf("%scode", name), XdrVecOpaque{u.Code(), 0xffffffff})
-		return
-	case EXPIRATION_EXTENSION:
-		return
-	}
-	XdrPanic("invalid LeType (%v) in XdrAnon_ContractCodeEntry_Body", u.LeType)
-}
-func XDR_XdrAnon_ContractCodeEntry_Body(v *XdrAnon_ContractCodeEntry_Body) *XdrAnon_ContractCodeEntry_Body {
-	return v
-}
 
 type XdrType_ContractCodeEntry = *ContractCodeEntry
 
@@ -8075,8 +7687,7 @@ func (v *ContractCodeEntry) XdrRecurse(x XDR, name string) {
 	}
 	x.Marshal(x.Sprintf("%sext", name), XDR_ExtensionPoint(&v.Ext))
 	x.Marshal(x.Sprintf("%shash", name), XDR_Hash(&v.Hash))
-	x.Marshal(x.Sprintf("%sbody", name), XDR_XdrAnon_ContractCodeEntry_Body(&v.Body))
-	x.Marshal(x.Sprintf("%sexpirationLedgerSeq", name), XDR_Uint32(&v.ExpirationLedgerSeq))
+	x.Marshal(x.Sprintf("%scode", name), XdrVecOpaque{&v.Code, 0xffffffff})
 }
 func XDR_ContractCodeEntry(v *ContractCodeEntry) *ContractCodeEntry { return v }
 
@@ -8607,8 +8218,6 @@ func (v *XdrAnon_LedgerKey_ContractData) XdrRecurse(x XDR, name string) {
 	}
 	x.Marshal(x.Sprintf("%scontractID", name), XDR_Hash(&v.ContractID))
 	x.Marshal(x.Sprintf("%skey", name), XDR_SCVal(&v.Key))
-	x.Marshal(x.Sprintf("%stype", name), XDR_ContractDataType(&v.Type))
-	x.Marshal(x.Sprintf("%sleType", name), XDR_ContractLedgerEntryType(&v.LeType))
 }
 func XDR_XdrAnon_LedgerKey_ContractData(v *XdrAnon_LedgerKey_ContractData) *XdrAnon_LedgerKey_ContractData {
 	return v
@@ -8625,7 +8234,6 @@ func (v *XdrAnon_LedgerKey_ContractCode) XdrRecurse(x XDR, name string) {
 		name = x.Sprintf("%s.", name)
 	}
 	x.Marshal(x.Sprintf("%shash", name), XDR_Hash(&v.Hash))
-	x.Marshal(x.Sprintf("%sleType", name), XDR_ContractLedgerEntryType(&v.LeType))
 }
 func XDR_XdrAnon_LedgerKey_ContractCode(v *XdrAnon_LedgerKey_ContractCode) *XdrAnon_LedgerKey_ContractCode {
 	return v
@@ -12260,146 +11868,9 @@ func (v *LedgerCloseMetaV1) XdrRecurse(x XDR, name string) {
 }
 func XDR_LedgerCloseMetaV1(v *LedgerCloseMetaV1) *LedgerCloseMetaV1 { return v }
 
-type _XdrVec_unbounded_LedgerKey []LedgerKey
-
-func (_XdrVec_unbounded_LedgerKey) XdrBound() uint32 {
-	const bound uint32 = 4294967295 // Force error if not const or doesn't fit
-	return bound
-}
-func (_XdrVec_unbounded_LedgerKey) XdrCheckLen(length uint32) {
-	if length > uint32(4294967295) {
-		XdrPanic("_XdrVec_unbounded_LedgerKey length %d exceeds bound 4294967295", length)
-	} else if int(length) < 0 {
-		XdrPanic("_XdrVec_unbounded_LedgerKey length %d exceeds max int", length)
-	}
-}
-func (v _XdrVec_unbounded_LedgerKey) GetVecLen() uint32 { return uint32(len(v)) }
-func (v *_XdrVec_unbounded_LedgerKey) SetVecLen(length uint32) {
-	v.XdrCheckLen(length)
-	if int(length) <= cap(*v) {
-		if int(length) != len(*v) {
-			*v = (*v)[:int(length)]
-		}
-		return
-	}
-	newcap := 2 * cap(*v)
-	if newcap < int(length) { // also catches overflow where 2*cap < 0
-		newcap = int(length)
-	} else if bound := uint(4294967295); uint(newcap) > bound {
-		if int(bound) < 0 {
-			bound = ^uint(0) >> 1
-		}
-		newcap = int(bound)
-	}
-	nv := make([]LedgerKey, int(length), newcap)
-	copy(nv, *v)
-	*v = nv
-}
-func (v *_XdrVec_unbounded_LedgerKey) XdrMarshalN(x XDR, name string, n uint32) {
-	v.XdrCheckLen(n)
-	for i := 0; i < int(n); i++ {
-		if i >= len(*v) {
-			v.SetVecLen(uint32(i + 1))
-		}
-		XDR_LedgerKey(&(*v)[i]).XdrMarshal(x, x.Sprintf("%s[%d]", name, i))
-	}
-	if int(n) < len(*v) {
-		*v = (*v)[:int(n)]
-	}
-}
-func (v *_XdrVec_unbounded_LedgerKey) XdrRecurse(x XDR, name string) {
-	size := XdrSize{Size: uint32(len(*v)), Bound: 4294967295}
-	x.Marshal(name, &size)
-	v.XdrMarshalN(x, name, size.Size)
-}
-func (_XdrVec_unbounded_LedgerKey) XdrTypeName() string              { return "LedgerKey<>" }
-func (v *_XdrVec_unbounded_LedgerKey) XdrPointer() interface{}       { return (*[]LedgerKey)(v) }
-func (v _XdrVec_unbounded_LedgerKey) XdrValue() interface{}          { return ([]LedgerKey)(v) }
-func (v *_XdrVec_unbounded_LedgerKey) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-
-type _XdrVec_unbounded_LedgerEntry []LedgerEntry
-
-func (_XdrVec_unbounded_LedgerEntry) XdrBound() uint32 {
-	const bound uint32 = 4294967295 // Force error if not const or doesn't fit
-	return bound
-}
-func (_XdrVec_unbounded_LedgerEntry) XdrCheckLen(length uint32) {
-	if length > uint32(4294967295) {
-		XdrPanic("_XdrVec_unbounded_LedgerEntry length %d exceeds bound 4294967295", length)
-	} else if int(length) < 0 {
-		XdrPanic("_XdrVec_unbounded_LedgerEntry length %d exceeds max int", length)
-	}
-}
-func (v _XdrVec_unbounded_LedgerEntry) GetVecLen() uint32 { return uint32(len(v)) }
-func (v *_XdrVec_unbounded_LedgerEntry) SetVecLen(length uint32) {
-	v.XdrCheckLen(length)
-	if int(length) <= cap(*v) {
-		if int(length) != len(*v) {
-			*v = (*v)[:int(length)]
-		}
-		return
-	}
-	newcap := 2 * cap(*v)
-	if newcap < int(length) { // also catches overflow where 2*cap < 0
-		newcap = int(length)
-	} else if bound := uint(4294967295); uint(newcap) > bound {
-		if int(bound) < 0 {
-			bound = ^uint(0) >> 1
-		}
-		newcap = int(bound)
-	}
-	nv := make([]LedgerEntry, int(length), newcap)
-	copy(nv, *v)
-	*v = nv
-}
-func (v *_XdrVec_unbounded_LedgerEntry) XdrMarshalN(x XDR, name string, n uint32) {
-	v.XdrCheckLen(n)
-	for i := 0; i < int(n); i++ {
-		if i >= len(*v) {
-			v.SetVecLen(uint32(i + 1))
-		}
-		XDR_LedgerEntry(&(*v)[i]).XdrMarshal(x, x.Sprintf("%s[%d]", name, i))
-	}
-	if int(n) < len(*v) {
-		*v = (*v)[:int(n)]
-	}
-}
-func (v *_XdrVec_unbounded_LedgerEntry) XdrRecurse(x XDR, name string) {
-	size := XdrSize{Size: uint32(len(*v)), Bound: 4294967295}
-	x.Marshal(name, &size)
-	v.XdrMarshalN(x, name, size.Size)
-}
-func (_XdrVec_unbounded_LedgerEntry) XdrTypeName() string              { return "LedgerEntry<>" }
-func (v *_XdrVec_unbounded_LedgerEntry) XdrPointer() interface{}       { return (*[]LedgerEntry)(v) }
-func (v _XdrVec_unbounded_LedgerEntry) XdrValue() interface{}          { return ([]LedgerEntry)(v) }
-func (v *_XdrVec_unbounded_LedgerEntry) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-
-type XdrType_LedgerCloseMetaV2 = *LedgerCloseMetaV2
-
-func (v *LedgerCloseMetaV2) XdrPointer() interface{}       { return v }
-func (LedgerCloseMetaV2) XdrTypeName() string              { return "LedgerCloseMetaV2" }
-func (v LedgerCloseMetaV2) XdrValue() interface{}          { return v }
-func (v *LedgerCloseMetaV2) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-func (v *LedgerCloseMetaV2) XdrRecurse(x XDR, name string) {
-	if name != "" {
-		name = x.Sprintf("%s.", name)
-	}
-	x.Marshal(x.Sprintf("%sext", name), XDR_ExtensionPoint(&v.Ext))
-	x.Marshal(x.Sprintf("%sledgerHeader", name), XDR_LedgerHeaderHistoryEntry(&v.LedgerHeader))
-	x.Marshal(x.Sprintf("%stxSet", name), XDR_GeneralizedTransactionSet(&v.TxSet))
-	x.Marshal(x.Sprintf("%stxProcessing", name), (*_XdrVec_unbounded_TransactionResultMeta)(&v.TxProcessing))
-	x.Marshal(x.Sprintf("%supgradesProcessing", name), (*_XdrVec_unbounded_UpgradeEntryMeta)(&v.UpgradesProcessing))
-	x.Marshal(x.Sprintf("%sscpInfo", name), (*_XdrVec_unbounded_SCPHistoryEntry)(&v.ScpInfo))
-	x.Marshal(x.Sprintf("%stotalByteSizeOfBucketList", name), XDR_Uint64(&v.TotalByteSizeOfBucketList))
-	x.Marshal(x.Sprintf("%sevictedTemporaryLedgerKeys", name), (*_XdrVec_unbounded_LedgerKey)(&v.EvictedTemporaryLedgerKeys))
-	x.Marshal(x.Sprintf("%sevictedRestorableLedgerEntries", name), (*_XdrVec_unbounded_LedgerEntry)(&v.EvictedRestorableLedgerEntries))
-}
-func XDR_LedgerCloseMetaV2(v *LedgerCloseMetaV2) *LedgerCloseMetaV2 { return v }
-
 var _XdrTags_LedgerCloseMeta = map[int32]bool{
 	XdrToI32(0): true,
 	XdrToI32(1): true,
-	XdrToI32(2): true,
 }
 
 func (_ LedgerCloseMeta) XdrValidTags() map[int32]bool {
@@ -12435,24 +11906,9 @@ func (u *LedgerCloseMeta) V1() *LedgerCloseMetaV1 {
 		return nil
 	}
 }
-func (u *LedgerCloseMeta) V2() *LedgerCloseMetaV2 {
-	switch u.V {
-	case 2:
-		if v, ok := u._u.(*LedgerCloseMetaV2); ok {
-			return v
-		} else {
-			var zero LedgerCloseMetaV2
-			u._u = &zero
-			return &zero
-		}
-	default:
-		XdrPanic("LedgerCloseMeta.V2 accessed when V == %v", u.V)
-		return nil
-	}
-}
 func (u LedgerCloseMeta) XdrValid() bool {
 	switch u.V {
-	case 0, 1, 2:
+	case 0, 1:
 		return true
 	}
 	return false
@@ -12469,8 +11925,6 @@ func (u *LedgerCloseMeta) XdrUnionBody() XdrType {
 		return XDR_LedgerCloseMetaV0(u.V0())
 	case 1:
 		return XDR_LedgerCloseMetaV1(u.V1())
-	case 2:
-		return XDR_LedgerCloseMetaV2(u.V2())
 	}
 	return nil
 }
@@ -12480,8 +11934,6 @@ func (u *LedgerCloseMeta) XdrUnionBodyName() string {
 		return "V0"
 	case 1:
 		return "V1"
-	case 2:
-		return "V2"
 	}
 	return ""
 }
@@ -12503,9 +11955,6 @@ func (u *LedgerCloseMeta) XdrRecurse(x XDR, name string) {
 		return
 	case 1:
 		x.Marshal(x.Sprintf("%sv1", name), XDR_LedgerCloseMetaV1(u.V1()))
-		return
-	case 2:
-		x.Marshal(x.Sprintf("%sv2", name), XDR_LedgerCloseMetaV2(u.V2()))
 		return
 	}
 	XdrPanic("invalid V (%v) in LedgerCloseMeta", u.V)
@@ -17725,6 +17174,63 @@ func (u *Preconditions) XdrRecurse(x XDR, name string) {
 	XdrPanic("invalid Type (%v) in Preconditions", u.Type)
 }
 func XDR_Preconditions(v *Preconditions) *Preconditions { return v }
+
+type _XdrVec_unbounded_LedgerKey []LedgerKey
+
+func (_XdrVec_unbounded_LedgerKey) XdrBound() uint32 {
+	const bound uint32 = 4294967295 // Force error if not const or doesn't fit
+	return bound
+}
+func (_XdrVec_unbounded_LedgerKey) XdrCheckLen(length uint32) {
+	if length > uint32(4294967295) {
+		XdrPanic("_XdrVec_unbounded_LedgerKey length %d exceeds bound 4294967295", length)
+	} else if int(length) < 0 {
+		XdrPanic("_XdrVec_unbounded_LedgerKey length %d exceeds max int", length)
+	}
+}
+func (v _XdrVec_unbounded_LedgerKey) GetVecLen() uint32 { return uint32(len(v)) }
+func (v *_XdrVec_unbounded_LedgerKey) SetVecLen(length uint32) {
+	v.XdrCheckLen(length)
+	if int(length) <= cap(*v) {
+		if int(length) != len(*v) {
+			*v = (*v)[:int(length)]
+		}
+		return
+	}
+	newcap := 2 * cap(*v)
+	if newcap < int(length) { // also catches overflow where 2*cap < 0
+		newcap = int(length)
+	} else if bound := uint(4294967295); uint(newcap) > bound {
+		if int(bound) < 0 {
+			bound = ^uint(0) >> 1
+		}
+		newcap = int(bound)
+	}
+	nv := make([]LedgerKey, int(length), newcap)
+	copy(nv, *v)
+	*v = nv
+}
+func (v *_XdrVec_unbounded_LedgerKey) XdrMarshalN(x XDR, name string, n uint32) {
+	v.XdrCheckLen(n)
+	for i := 0; i < int(n); i++ {
+		if i >= len(*v) {
+			v.SetVecLen(uint32(i + 1))
+		}
+		XDR_LedgerKey(&(*v)[i]).XdrMarshal(x, x.Sprintf("%s[%d]", name, i))
+	}
+	if int(n) < len(*v) {
+		*v = (*v)[:int(n)]
+	}
+}
+func (v *_XdrVec_unbounded_LedgerKey) XdrRecurse(x XDR, name string) {
+	size := XdrSize{Size: uint32(len(*v)), Bound: 4294967295}
+	x.Marshal(name, &size)
+	v.XdrMarshalN(x, name, size.Size)
+}
+func (_XdrVec_unbounded_LedgerKey) XdrTypeName() string              { return "LedgerKey<>" }
+func (v *_XdrVec_unbounded_LedgerKey) XdrPointer() interface{}       { return (*[]LedgerKey)(v) }
+func (v _XdrVec_unbounded_LedgerKey) XdrValue() interface{}          { return ([]LedgerKey)(v) }
+func (v *_XdrVec_unbounded_LedgerKey) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
 
 type XdrType_LedgerFootprint = *LedgerFootprint
 
@@ -26133,7 +25639,6 @@ var _XdrNames_SCValType = map[int32]string{
 	int32(SCV_ADDRESS):             "SCV_ADDRESS",
 	int32(SCV_LEDGER_KEY_CONTRACT_EXECUTABLE): "SCV_LEDGER_KEY_CONTRACT_EXECUTABLE",
 	int32(SCV_LEDGER_KEY_NONCE):               "SCV_LEDGER_KEY_NONCE",
-	int32(SCV_STORAGE_TYPE):                   "SCV_STORAGE_TYPE",
 }
 var _XdrValues_SCValType = map[string]int32{
 	"SCV_BOOL":                           int32(SCV_BOOL),
@@ -26158,7 +25663,6 @@ var _XdrValues_SCValType = map[string]int32{
 	"SCV_ADDRESS":                        int32(SCV_ADDRESS),
 	"SCV_LEDGER_KEY_CONTRACT_EXECUTABLE": int32(SCV_LEDGER_KEY_CONTRACT_EXECUTABLE),
 	"SCV_LEDGER_KEY_NONCE":               int32(SCV_LEDGER_KEY_NONCE),
-	"SCV_STORAGE_TYPE":                   int32(SCV_STORAGE_TYPE),
 }
 
 func (SCValType) XdrEnumNames() map[int32]string {
@@ -26691,53 +26195,6 @@ func (u *SCAddress) XdrRecurse(x XDR, name string) {
 }
 func XDR_SCAddress(v *SCAddress) *SCAddress { return v }
 
-var _XdrNames_ContractDataType = map[int32]string{
-	int32(TEMPORARY): "TEMPORARY",
-	int32(MERGEABLE): "MERGEABLE",
-	int32(EXCLUSIVE): "EXCLUSIVE",
-}
-var _XdrValues_ContractDataType = map[string]int32{
-	"TEMPORARY": int32(TEMPORARY),
-	"MERGEABLE": int32(MERGEABLE),
-	"EXCLUSIVE": int32(EXCLUSIVE),
-}
-
-func (ContractDataType) XdrEnumNames() map[int32]string {
-	return _XdrNames_ContractDataType
-}
-func (v ContractDataType) String() string {
-	if s, ok := _XdrNames_ContractDataType[int32(v)]; ok {
-		return s
-	}
-	return fmt.Sprintf("ContractDataType#%d", v)
-}
-func (v *ContractDataType) Scan(ss fmt.ScanState, _ rune) error {
-	if tok, err := ss.Token(true, XdrSymChar); err != nil {
-		return err
-	} else {
-		stok := string(tok)
-		if val, ok := _XdrValues_ContractDataType[stok]; ok {
-			*v = ContractDataType(val)
-			return nil
-		} else if stok == "ContractDataType" {
-			if n, err := fmt.Fscanf(ss, "#%d", (*int32)(v)); n == 1 && err == nil {
-				return nil
-			}
-		}
-		return XdrError(fmt.Sprintf("%s is not a valid ContractDataType.", stok))
-	}
-}
-func (v ContractDataType) GetU32() uint32                 { return uint32(v) }
-func (v *ContractDataType) SetU32(n uint32)               { *v = ContractDataType(n) }
-func (v *ContractDataType) XdrPointer() interface{}       { return v }
-func (ContractDataType) XdrTypeName() string              { return "ContractDataType" }
-func (v ContractDataType) XdrValue() interface{}          { return v }
-func (v *ContractDataType) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-
-type XdrType_ContractDataType = *ContractDataType
-
-func XDR_ContractDataType(v *ContractDataType) *ContractDataType { return v }
-
 type _XdrVec_unbounded_SCVal []SCVal
 
 func (_XdrVec_unbounded_SCVal) XdrBound() uint32 {
@@ -27085,7 +26542,6 @@ var _XdrTags_SCVal = map[int32]bool{
 	XdrToI32(SCV_ADDRESS):                        true,
 	XdrToI32(SCV_LEDGER_KEY_CONTRACT_EXECUTABLE): true,
 	XdrToI32(SCV_LEDGER_KEY_NONCE):               true,
-	XdrToI32(SCV_STORAGE_TYPE):                   true,
 }
 
 func (_ SCVal) XdrValidTags() map[int32]bool {
@@ -27391,24 +26847,9 @@ func (u *SCVal) Nonce_key() *SCNonceKey {
 		return nil
 	}
 }
-func (u *SCVal) StorageType() *ContractDataType {
-	switch u.Type {
-	case SCV_STORAGE_TYPE:
-		if v, ok := u._u.(*ContractDataType); ok {
-			return v
-		} else {
-			var zero ContractDataType
-			u._u = &zero
-			return &zero
-		}
-	default:
-		XdrPanic("SCVal.StorageType accessed when Type == %v", u.Type)
-		return nil
-	}
-}
 func (u SCVal) XdrValid() bool {
 	switch u.Type {
-	case SCV_BOOL, SCV_VOID, SCV_ERROR, SCV_U32, SCV_I32, SCV_U64, SCV_I64, SCV_TIMEPOINT, SCV_DURATION, SCV_U128, SCV_I128, SCV_U256, SCV_I256, SCV_BYTES, SCV_STRING, SCV_SYMBOL, SCV_VEC, SCV_MAP, SCV_CONTRACT_EXECUTABLE, SCV_ADDRESS, SCV_LEDGER_KEY_CONTRACT_EXECUTABLE, SCV_LEDGER_KEY_NONCE, SCV_STORAGE_TYPE:
+	case SCV_BOOL, SCV_VOID, SCV_ERROR, SCV_U32, SCV_I32, SCV_U64, SCV_I64, SCV_TIMEPOINT, SCV_DURATION, SCV_U128, SCV_I128, SCV_U256, SCV_I256, SCV_BYTES, SCV_STRING, SCV_SYMBOL, SCV_VEC, SCV_MAP, SCV_CONTRACT_EXECUTABLE, SCV_ADDRESS, SCV_LEDGER_KEY_CONTRACT_EXECUTABLE, SCV_LEDGER_KEY_NONCE:
 		return true
 	}
 	return false
@@ -27465,8 +26906,6 @@ func (u *SCVal) XdrUnionBody() XdrType {
 		return nil
 	case SCV_LEDGER_KEY_NONCE:
 		return XDR_SCNonceKey(u.Nonce_key())
-	case SCV_STORAGE_TYPE:
-		return XDR_ContractDataType(u.StorageType())
 	}
 	return nil
 }
@@ -27516,8 +26955,6 @@ func (u *SCVal) XdrUnionBodyName() string {
 		return ""
 	case SCV_LEDGER_KEY_NONCE:
 		return "Nonce_key"
-	case SCV_STORAGE_TYPE:
-		return "StorageType"
 	}
 	return ""
 }
@@ -27597,9 +27034,6 @@ func (u *SCVal) XdrRecurse(x XDR, name string) {
 		return
 	case SCV_LEDGER_KEY_NONCE:
 		x.Marshal(x.Sprintf("%snonce_key", name), XDR_SCNonceKey(u.Nonce_key()))
-		return
-	case SCV_STORAGE_TYPE:
-		x.Marshal(x.Sprintf("%sstorageType", name), XDR_ContractDataType(u.StorageType()))
 		return
 	}
 	XdrPanic("invalid Type (%v) in SCVal", u.Type)
@@ -28133,84 +27567,6 @@ func (v *ContractCostParamEntry) XdrRecurse(x XDR, name string) {
 }
 func XDR_ContractCostParamEntry(v *ContractCostParamEntry) *ContractCostParamEntry { return v }
 
-var _XdrTags_XdrAnon_StateExpirationSettings_Ext = map[int32]bool{
-	XdrToI32(0): true,
-}
-
-func (_ XdrAnon_StateExpirationSettings_Ext) XdrValidTags() map[int32]bool {
-	return _XdrTags_XdrAnon_StateExpirationSettings_Ext
-}
-func (u XdrAnon_StateExpirationSettings_Ext) XdrValid() bool {
-	switch u.V {
-	case 0:
-		return true
-	}
-	return false
-}
-func (u *XdrAnon_StateExpirationSettings_Ext) XdrUnionTag() XdrNum32 {
-	return XDR_int32(&u.V)
-}
-func (u *XdrAnon_StateExpirationSettings_Ext) XdrUnionTagName() string {
-	return "V"
-}
-func (u *XdrAnon_StateExpirationSettings_Ext) XdrUnionBody() XdrType {
-	switch u.V {
-	case 0:
-		return nil
-	}
-	return nil
-}
-func (u *XdrAnon_StateExpirationSettings_Ext) XdrUnionBodyName() string {
-	switch u.V {
-	case 0:
-		return ""
-	}
-	return ""
-}
-
-type XdrType_XdrAnon_StateExpirationSettings_Ext = *XdrAnon_StateExpirationSettings_Ext
-
-func (v *XdrAnon_StateExpirationSettings_Ext) XdrPointer() interface{} { return v }
-func (XdrAnon_StateExpirationSettings_Ext) XdrTypeName() string {
-	return "XdrAnon_StateExpirationSettings_Ext"
-}
-func (v XdrAnon_StateExpirationSettings_Ext) XdrValue() interface{}          { return v }
-func (v *XdrAnon_StateExpirationSettings_Ext) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-func (u *XdrAnon_StateExpirationSettings_Ext) XdrRecurse(x XDR, name string) {
-	if name != "" {
-		name = x.Sprintf("%s.", name)
-	}
-	XDR_int32(&u.V).XdrMarshal(x, x.Sprintf("%sv", name))
-	switch u.V {
-	case 0:
-		return
-	}
-	XdrPanic("invalid V (%v) in XdrAnon_StateExpirationSettings_Ext", u.V)
-}
-func XDR_XdrAnon_StateExpirationSettings_Ext(v *XdrAnon_StateExpirationSettings_Ext) *XdrAnon_StateExpirationSettings_Ext {
-	return v
-}
-
-type XdrType_StateExpirationSettings = *StateExpirationSettings
-
-func (v *StateExpirationSettings) XdrPointer() interface{}       { return v }
-func (StateExpirationSettings) XdrTypeName() string              { return "StateExpirationSettings" }
-func (v StateExpirationSettings) XdrValue() interface{}          { return v }
-func (v *StateExpirationSettings) XdrMarshal(x XDR, name string) { x.Marshal(name, v) }
-func (v *StateExpirationSettings) XdrRecurse(x XDR, name string) {
-	if name != "" {
-		name = x.Sprintf("%s.", name)
-	}
-	x.Marshal(x.Sprintf("%smaxEntryExpiration", name), XDR_Uint32(&v.MaxEntryExpiration))
-	x.Marshal(x.Sprintf("%sminTempEntryExpiration", name), XDR_Uint32(&v.MinTempEntryExpiration))
-	x.Marshal(x.Sprintf("%sminRestorableEntryExpiration", name), XDR_Uint32(&v.MinRestorableEntryExpiration))
-	x.Marshal(x.Sprintf("%sautoBumpLedgers", name), XDR_Uint32(&v.AutoBumpLedgers))
-	x.Marshal(x.Sprintf("%srestorableRentRateDenominator", name), XDR_Int64(&v.RestorableRentRateDenominator))
-	x.Marshal(x.Sprintf("%stempRentRateDenominator", name), XDR_Int64(&v.TempRentRateDenominator))
-	x.Marshal(x.Sprintf("%sext", name), XDR_XdrAnon_StateExpirationSettings_Ext(&v.Ext))
-}
-func XDR_StateExpirationSettings(v *StateExpirationSettings) *StateExpirationSettings { return v }
-
 type _XdrVec_1024_ContractCostParamEntry []ContractCostParamEntry
 
 func (_XdrVec_1024_ContractCostParamEntry) XdrBound() uint32 {
@@ -28293,7 +27649,6 @@ var _XdrNames_ConfigSettingID = map[int32]string{
 	int32(CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES):     "CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES",
 	int32(CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES):          "CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES",
 	int32(CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES):        "CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES",
-	int32(CONFIG_SETTING_STATE_EXPIRATION):                      "CONFIG_SETTING_STATE_EXPIRATION",
 }
 var _XdrValues_ConfigSettingID = map[string]int32{
 	"CONFIG_SETTING_CONTRACT_MAX_SIZE_BYTES":               int32(CONFIG_SETTING_CONTRACT_MAX_SIZE_BYTES),
@@ -28306,7 +27661,6 @@ var _XdrValues_ConfigSettingID = map[string]int32{
 	"CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES":     int32(CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES),
 	"CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES":          int32(CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES),
 	"CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES":        int32(CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES),
-	"CONFIG_SETTING_STATE_EXPIRATION":                      int32(CONFIG_SETTING_STATE_EXPIRATION),
 }
 
 func (ConfigSettingID) XdrEnumNames() map[int32]string {
@@ -28356,7 +27710,6 @@ var _XdrTags_ConfigSettingEntry = map[int32]bool{
 	XdrToI32(CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES):     true,
 	XdrToI32(CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES):          true,
 	XdrToI32(CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES):        true,
-	XdrToI32(CONFIG_SETTING_STATE_EXPIRATION):                      true,
 }
 
 func (_ ConfigSettingEntry) XdrValidTags() map[int32]bool {
@@ -28512,24 +27865,9 @@ func (u *ConfigSettingEntry) ContractDataEntrySizeBytes() *Uint32 {
 		return nil
 	}
 }
-func (u *ConfigSettingEntry) StateExpirationSettings() *StateExpirationSettings {
-	switch u.ConfigSettingID {
-	case CONFIG_SETTING_STATE_EXPIRATION:
-		if v, ok := u._u.(*StateExpirationSettings); ok {
-			return v
-		} else {
-			var zero StateExpirationSettings
-			u._u = &zero
-			return &zero
-		}
-	default:
-		XdrPanic("ConfigSettingEntry.StateExpirationSettings accessed when ConfigSettingID == %v", u.ConfigSettingID)
-		return nil
-	}
-}
 func (u ConfigSettingEntry) XdrValid() bool {
 	switch u.ConfigSettingID {
-	case CONFIG_SETTING_CONTRACT_MAX_SIZE_BYTES, CONFIG_SETTING_CONTRACT_COMPUTE_V0, CONFIG_SETTING_CONTRACT_LEDGER_COST_V0, CONFIG_SETTING_CONTRACT_HISTORICAL_DATA_V0, CONFIG_SETTING_CONTRACT_META_DATA_V0, CONFIG_SETTING_CONTRACT_BANDWIDTH_V0, CONFIG_SETTING_CONTRACT_COST_PARAMS_CPU_INSTRUCTIONS, CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES, CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES, CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES, CONFIG_SETTING_STATE_EXPIRATION:
+	case CONFIG_SETTING_CONTRACT_MAX_SIZE_BYTES, CONFIG_SETTING_CONTRACT_COMPUTE_V0, CONFIG_SETTING_CONTRACT_LEDGER_COST_V0, CONFIG_SETTING_CONTRACT_HISTORICAL_DATA_V0, CONFIG_SETTING_CONTRACT_META_DATA_V0, CONFIG_SETTING_CONTRACT_BANDWIDTH_V0, CONFIG_SETTING_CONTRACT_COST_PARAMS_CPU_INSTRUCTIONS, CONFIG_SETTING_CONTRACT_COST_PARAMS_MEMORY_BYTES, CONFIG_SETTING_CONTRACT_DATA_KEY_SIZE_BYTES, CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES:
 		return true
 	}
 	return false
@@ -28562,8 +27900,6 @@ func (u *ConfigSettingEntry) XdrUnionBody() XdrType {
 		return XDR_Uint32(u.ContractDataKeySizeBytes())
 	case CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES:
 		return XDR_Uint32(u.ContractDataEntrySizeBytes())
-	case CONFIG_SETTING_STATE_EXPIRATION:
-		return XDR_StateExpirationSettings(u.StateExpirationSettings())
 	}
 	return nil
 }
@@ -28589,8 +27925,6 @@ func (u *ConfigSettingEntry) XdrUnionBodyName() string {
 		return "ContractDataKeySizeBytes"
 	case CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES:
 		return "ContractDataEntrySizeBytes"
-	case CONFIG_SETTING_STATE_EXPIRATION:
-		return "StateExpirationSettings"
 	}
 	return ""
 }
@@ -28636,9 +27970,6 @@ func (u *ConfigSettingEntry) XdrRecurse(x XDR, name string) {
 		return
 	case CONFIG_SETTING_CONTRACT_DATA_ENTRY_SIZE_BYTES:
 		x.Marshal(x.Sprintf("%scontractDataEntrySizeBytes", name), XDR_Uint32(u.ContractDataEntrySizeBytes()))
-		return
-	case CONFIG_SETTING_STATE_EXPIRATION:
-		x.Marshal(x.Sprintf("%sstateExpirationSettings", name), XDR_StateExpirationSettings(u.StateExpirationSettings()))
 		return
 	}
 	XdrPanic("invalid ConfigSettingID (%v) in ConfigSettingEntry", u.ConfigSettingID)
