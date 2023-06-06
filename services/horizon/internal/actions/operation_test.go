@@ -65,37 +65,8 @@ func TestInvokeHostFnDetailsInPaymentOperations(t *testing.T) {
 		1,
 		xdr.OperationTypeInvokeHostFunction,
 		[]byte(`{
-	        "host_functions": [
-				{
-					"type": "invoke_contract",
-                    "parameters": [
-						{
-							"value": "AAAADwAAAAdmbl9uYW1lAA==",
-							"type": "Sym"
-						},
-						{
-							"value": "AAAAAwAAAAI=",
-							"type": "U32"
-						}
-					]
-				},
-				{
-					"type": "create_contract",
-                    "parameters": [
-						{
-							"from": "source_account",
-							"type": "string"
-						},
-						{
-							"salt": "123",
-							"type": "string"
-						}
-					]
-				},
-				{
-					"type": "upload_wasm"
-				}
-			],	
+            "parameters": [],
+            "function": "fn",
 			"asset_balance_changes": [
                 {
 					"asset_type": "credit_alphanum4",
