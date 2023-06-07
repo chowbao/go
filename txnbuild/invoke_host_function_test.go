@@ -58,19 +58,19 @@ func TestInvokeHostFunctionRoundTrip(t *testing.T) {
                         Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
                         Address: &xdr.SorobanAddressCredentials{
                             Address: xdr.ScAddress{
-    							Type:      xdr.ScAddressTypeScAddressTypeAccount,
+    							Type:      xdr.ScAddressTypeScAddressTypeContract,
 	    						AccountId: &accountId,
                             },
                             Nonce: 0,
                             SignatureArgs: nil,
-                        }
+                        },
                     },
                     RootInvocation: xdr.SorobanAuthorizedInvocation{
                         Function: xdr.SorobanAuthorizedFunction{
                             Type: xdr.SorobanAuthorizedFunctionTypeSorobanAuthorizedFunctionTypeContractFn,
                             ContractFn: &xdr.SorobanAuthorizedContractFunction{
                                 ContractAddress: xdr.ScAddress{
-    							    Type:      xdr.ScAddressTypeScAddressTypeAccount,
+    							    Type:      xdr.ScAddressTypeScAddressTypeContract,
 	    						    AccountId: &accountId,
                                 },
                                 FunctionName: "foo",
@@ -80,7 +80,6 @@ func TestInvokeHostFunctionRoundTrip(t *testing.T) {
                         SubInvocations: nil,
                     },
 				},
-			},
 		},
 		Ext: xdr.TransactionExt{
 			V: 1,

@@ -368,6 +368,7 @@ type InvokeHostFunction struct {
 type HostFunctionParameter struct {
 	Value string `json:"value"`
 	Type  string `json:"type"`
+}
 
 // Type   - refers to the source SAC Event
 //

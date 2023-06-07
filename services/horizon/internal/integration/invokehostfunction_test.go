@@ -69,9 +69,7 @@ func TestContractInvokeHostFunctionInstallContract(t *testing.T) {
 
 	invokeHostFunctionOpJson, ok := clientInvokeOp.Embedded.Records[0].(operations.InvokeHostFunction)
 	assert.True(t, ok)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions, 1)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters, 0)
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Type, "upload_wasm")
+	assert.Equal(t, invokeHostFunctionOpJson.Type, "upload_wasm")
 
 }
 
@@ -467,6 +465,7 @@ func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName s
 
 	networkId := xdr.Hash(sha256.Sum256([]byte(passPhrase)))
 	preImage := xdr.HashIdPreimage{
+        // TODO(chowbao):Need to update EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount to EnvelopeTypeEnvelopeTypeContractId
 		Type: xdr.EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount,
 		SourceAccountContractId: &xdr.HashIdPreimageSourceAccountContractId{
 			NetworkId: networkId,
