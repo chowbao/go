@@ -633,14 +633,6 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		op := operation.operation.Body.MustInvokeHostFunctionOp()
         details["function"] = op.HostFunction.Type.String()
 
-        //auths := make([]map[string]interface{}, 0, len(op.Auth))
-        //details["auth_credentials"] = op.Auth.Credentials.Type.String()
-
-        //details[""] = op.Auth.RootInvocation
-        //details[""] = op.Auth.RootInvocation.Address
-        //details[""] = op.Auth.RootInvocation.Nonce
-        //details[""] = op.Auth.RootInvocation.SignatureArgs
-
         switch op.HostFunction.Type {
         case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
             args = op.HostFunction.MustInvokeContract()
