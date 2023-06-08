@@ -7,9 +7,9 @@ import (
 
 type InvokeHostFunction struct {
 	HostFunction  xdr.HostFunction
-	SourceAccount string
-	Ext           xdr.TransactionExt
 	Auth          []xdr.SorobanAuthorizationEntry
+	Ext           xdr.TransactionExt
+	SourceAccount string
 }
 
 func (f *InvokeHostFunction) BuildXDR() (xdr.Operation, error) {

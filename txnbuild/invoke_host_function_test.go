@@ -55,7 +55,7 @@ func TestInvokeHostFunctionRoundTrip(t *testing.T) {
 		Auth: []xdr.SorobanAuthorizationEntry{
 			{
 				Credentials: xdr.SorobanCredentials{
-					Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
+					Type: xdr.SorobanCredentialsTypeSorobanCredentialsAddress,
 					Address: &xdr.SorobanAddressCredentials{
 						Address: xdr.ScAddress{
 							Type:      xdr.ScAddressTypeScAddressTypeAccount,
