@@ -6,10 +6,10 @@ import (
 )
 
 type InvokeHostFunction struct {
-	HostFunction    xdr.HostFunction
-	SourceAccount   string
-	Ext             xdr.TransactionExt
-    Auth            []xdr.SorobanAuthorizationEntry
+	HostFunction  xdr.HostFunction
+	SourceAccount string
+	Ext           xdr.TransactionExt
+	Auth          []xdr.SorobanAuthorizationEntry
 }
 
 func (f *InvokeHostFunction) BuildXDR() (xdr.Operation, error) {
@@ -17,7 +17,7 @@ func (f *InvokeHostFunction) BuildXDR() (xdr.Operation, error) {
 	opType := xdr.OperationTypeInvokeHostFunction
 	xdrOp := xdr.InvokeHostFunctionOp{
 		HostFunction: f.HostFunction,
-        Auth: f.Auth,
+		Auth:         f.Auth,
 	}
 
 	body, err := xdr.NewOperationBody(opType, xdrOp)
@@ -38,8 +38,8 @@ func (f *InvokeHostFunction) FromXDR(xdrOp xdr.Operation) error {
 	}
 
 	f.SourceAccount = accountFromXDR(xdrOp.SourceAccount)
-    f.HostFunction = result.HostFunction
-    f.Auth = result.Auth
+	f.HostFunction = result.HostFunction
+	f.Auth = result.Auth
 
 	return nil
 }

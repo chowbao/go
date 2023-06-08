@@ -14,10 +14,10 @@ func TestCreateInvokeHostFunctionValid(t *testing.T) {
 
 	invokeHostFunctionOp := InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
-				Type:           xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
-				InvokeContract: &xdr.ScVec{},
-        },
-		Auth: []xdr.SorobanAuthorizationEntry{},
+			Type:           xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
+			InvokeContract: &xdr.ScVec{},
+		},
+		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount.AccountID,
 	}
 
@@ -27,10 +27,10 @@ func TestCreateInvokeHostFunctionValid(t *testing.T) {
 func TestCreateInvokeHostFunctionInvalid(t *testing.T) {
 	invokeHostFunctionOp := InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
-				Type:           xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
-				InvokeContract: &xdr.ScVec{},
+			Type:           xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
+			InvokeContract: &xdr.ScVec{},
 		},
-		Auth: []xdr.SorobanAuthorizationEntry{},
+		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: "invalid account value",
 	}
 
@@ -51,35 +51,35 @@ func TestInvokeHostFunctionRoundTrip(t *testing.T) {
 					I32:  &val,
 				},
 			},
-        },
+		},
 		Auth: []xdr.SorobanAuthorizationEntry{
-				{
-                    Credentials: xdr.SorobanCredentials{
-                        Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
-                        Address: &xdr.SorobanAddressCredentials{
-                            Address: xdr.ScAddress{
-    							Type:      xdr.ScAddressTypeScAddressTypeContract,
-	    						AccountId: &accountId,
-                            },
-                            Nonce: 0,
-                            SignatureArgs: nil,
-                        },
-                    },
-                    RootInvocation: xdr.SorobanAuthorizedInvocation{
-                        Function: xdr.SorobanAuthorizedFunction{
-                            Type: xdr.SorobanAuthorizedFunctionTypeSorobanAuthorizedFunctionTypeContractFn,
-                            ContractFn: &xdr.SorobanAuthorizedContractFunction{
-                                ContractAddress: xdr.ScAddress{
-    							    Type:      xdr.ScAddressTypeScAddressTypeContract,
-	    						    AccountId: &accountId,
-                                },
-                                FunctionName: "foo",
-                                Args: nil,
-                            },
-                        },
-                        SubInvocations: nil,
-                    },
+			{
+				Credentials: xdr.SorobanCredentials{
+					Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount,
+					Address: &xdr.SorobanAddressCredentials{
+						Address: xdr.ScAddress{
+							Type:      xdr.ScAddressTypeScAddressTypeAccount,
+							AccountId: &accountId,
+						},
+						Nonce:         0,
+						SignatureArgs: nil,
+					},
 				},
+				RootInvocation: xdr.SorobanAuthorizedInvocation{
+					Function: xdr.SorobanAuthorizedFunction{
+						Type: xdr.SorobanAuthorizedFunctionTypeSorobanAuthorizedFunctionTypeContractFn,
+						ContractFn: &xdr.SorobanAuthorizedContractFunction{
+							ContractAddress: xdr.ScAddress{
+								Type:      xdr.ScAddressTypeScAddressTypeAccount,
+								AccountId: &accountId,
+							},
+							FunctionName: "foo",
+							Args:         nil,
+						},
+					},
+					SubInvocations: nil,
+				},
+			},
 		},
 		Ext: xdr.TransactionExt{
 			V: 1,

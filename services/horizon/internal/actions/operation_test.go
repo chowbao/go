@@ -120,7 +120,7 @@ func TestInvokeHostFnDetailsInPaymentOperations(t *testing.T) {
 	tt.Assert.Len(records, 1)
 
 	op := records[0].(operations.InvokeHostFunction)
-    tt.Assert.Equal(op.Function, "fn")
+	tt.Assert.Equal(op.Function, "fn")
 
 	tt.Assert.Equal(len(op.AssetBalanceChanges), 4)
 	tt.Assert.Equal(op.AssetBalanceChanges[0].From, "C_CONTRACT_ADDRESS1")

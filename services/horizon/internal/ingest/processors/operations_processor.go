@@ -631,26 +631,26 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 		}
 	case xdr.OperationTypeInvokeHostFunction:
 		op := operation.operation.Body.MustInvokeHostFunctionOp()
-        details["function"] = op.HostFunction.Type.String()
+		details["function"] = op.HostFunction.Type.String()
 
-        switch op.HostFunction.Type {
-        case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-            args = op.HostFunction.MustInvokeContract()
-            details["type"] = "invoke_contract"
-            params := make([]map[string]string, 0, len(args))
+		switch op.HostFunction.Type {
+		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
+			args = op.HostFunction.MustInvokeContract()
+			details["type"] = "invoke_contract"
+			params := make([]map[string]string, 0, len(args))
 
 			for _, param := range args {
 				serializedParam := map[string]string{}
 				serializedParam["value"] = "n/a"
 				serializedParam["type"] = "n/a"
 
-                if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
-			    	serializedParam["type"] = scValTypeName
-			    	if raw, err := param.MarshalBinary(); err == nil {
-			    		serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
-			    	}
-			    }
-			    params = append(params, serializedParam)
+				if scValTypeName, ok := param.ArmForSwitch(int32(param.Type)); ok {
+					serializedParam["type"] = scValTypeName
+					if raw, err := param.MarshalBinary(); err == nil {
+						serializedParam["value"] = base64.StdEncoding.EncodeToString(raw)
+					}
+				}
+				params = append(params, serializedParam)
 			}
 			details["parameters"] = params
 
@@ -667,13 +667,13 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
 				fromAddress := args.ContractIdPreimage.MustFromAddress()
 
-                fromAddress.Address
-                details["from"] = "address"
-                details["address"] = base64.StdEncoding.EncodeToString(fromAddress.Address.MarshalBinary())
-                details["salt"] = fromAddress.Salt
+				fromAddress.Address
+				details["from"] = "address"
+				details["address"] = base64.StdEncoding.EncodeToString(fromAddress.Address.MarshalBinary())
+				details["salt"] = fromAddress.Salt
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
-                details["from"] = "asset"
-                details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
+				details["from"] = "asset"
+				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
 			default:
 				panic(fmt.Errorf("Unknown contract id type: %s", args.ContractIdPreimage.Type))
 			}

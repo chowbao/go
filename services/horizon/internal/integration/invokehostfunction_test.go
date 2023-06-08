@@ -465,7 +465,7 @@ func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName s
 
 	networkId := xdr.Hash(sha256.Sum256([]byte(passPhrase)))
 	preImage := xdr.HashIdPreimage{
-        // TODO(chowbao):Need to update EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount to EnvelopeTypeEnvelopeTypeContractId
+		// TODO(chowbao):Need to update EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount to EnvelopeTypeEnvelopeTypeContractId
 		Type: xdr.EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount,
 		SourceAccountContractId: &xdr.HashIdPreimageSourceAccountContractId{
 			NetworkId: networkId,

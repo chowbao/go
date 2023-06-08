@@ -124,9 +124,9 @@ func (s *OperationsProcessorTestSuiteLedger) TestInvokeFunctionDetails() {
 				Body: xdr.OperationBody{
 					Type: xdr.OperationTypeInvokeHostFunction,
 					InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
-                        HostFunction: xdr.HostFunction{
-                            Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
-                            InvokeContract: &xdr.ScVec{
+						HostFunction: xdr.HostFunction{
+							Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
+							InvokeContract: &xdr.ScVec{
 								{
 									Type: xdr.ScValTypeScvSymbol,
 									Sym:  &contractParamVal1,
@@ -167,7 +167,7 @@ func (s *OperationsProcessorTestSuiteLedger) TestInvokeFunctionDetails() {
 		s.Assert().Equal(details["function"].(string), "HostFunctionTypeHostFunctionTypeInvokeContract")
 		s.Assert().Equal(details["type"].(string), "invoke_contract")
 
-        serializedParams := details["parameters"].([]map[string]string)
+		serializedParams := details["parameters"].([]map[string]string)
 		var args []xdr.ScVal = *(wrapper.operation.Body.InvokeHostFunctionOp.HostFunction.InvokeContract)
 		s.assertInvokeHostFunctionParameter(serializedParams, 0, "Sym", args[0])
 		s.assertInvokeHostFunctionParameter(serializedParams, 1, "I32", args[1])
@@ -280,15 +280,15 @@ func (s *OperationsProcessorTestSuiteLedger) TestInvokeFunctionDetails() {
 					InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
 						HostFunction: xdr.HostFunction{
 							Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
-                            CreateContract: &xdr.CreateContractArgs{
-                                ContractIdPreimage: xdr.ContractIdPreimage{
-							        Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
-								    FromAddress: &xdr.ContractIdPreimageFromAddress{
-									    Address:    sourceAddress,
-									    Salt:       salt,
-								    },
-                                },
-                                Executable: xdr.ScContractExecutable{
+							CreateContract: &xdr.CreateContractArgs{
+								ContractIdPreimage: xdr.ContractIdPreimage{
+									Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
+									FromAddress: &xdr.ContractIdPreimageFromAddress{
+										Address: sourceAddress,
+										Salt:    salt,
+									},
+								},
+								Executable: xdr.ScContractExecutable{
 									Type: xdr.ScContractExecutableTypeSccontractExecutableToken,
 								},
 							},
@@ -300,13 +300,13 @@ func (s *OperationsProcessorTestSuiteLedger) TestInvokeFunctionDetails() {
 
 		details, err := wrapper.Details()
 		s.Assert().NoError(err)
-		
-        s.Assert().Equal(details["function"].(string), "HostFunctionTypeHostFunctionTypeCreateContract")
-   		s.Assert().Equal(details["type"].(string), "create_contract")
 
-   		s.Assert().Equal(details["from"].(string), "address")
-   		s.Assert().Equal(details["address"].(string), "sourceAddress")
-   		s.Assert().Equal(details["salt"].(string), "16909060")
+		s.Assert().Equal(details["function"].(string), "HostFunctionTypeHostFunctionTypeCreateContract")
+		s.Assert().Equal(details["type"].(string), "create_contract")
+
+		s.Assert().Equal(details["from"].(string), "address")
+		s.Assert().Equal(details["address"].(string), "sourceAddress")
+		s.Assert().Equal(details["salt"].(string), "16909060")
 	})
 
 	s.T().Run("InstallContractCode", func(t *testing.T) {
