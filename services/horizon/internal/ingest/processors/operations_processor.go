@@ -268,7 +268,7 @@ func (operation *transactionOperationWrapper) IsPayment() bool {
 	case xdr.OperationTypeAccountMerge:
 		return true
 	case xdr.OperationTypeInvokeHostFunction:
-		diagnosticEvents, err := operation.transaction.GetOperationEvents(operation.index)
+		diagnosticEvents, err := operation.transaction.GetDiagnosticEvents()
 		if err != nil {
 			return false
 		}
@@ -635,7 +635,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 
 		switch op.HostFunction.Type {
 		case xdr.HostFunctionTypeHostFunctionTypeInvokeContract:
-			args = op.HostFunction.MustInvokeContract()
+			args := op.HostFunction.MustInvokeContract()
 			details["type"] = "invoke_contract"
 			params := make([]map[string]string, 0, len(args))
 
@@ -666,27 +666,26 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 			switch args.ContractIdPreimage.Type {
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAddress:
 				fromAddress := args.ContractIdPreimage.MustFromAddress()
-
-				fromAddress.Address
+				address, err := fromAddress.Address.String()
+				if err != nil {
+					panic(fmt.Errorf("error obtaining address for: %s", args.ContractIdPreimage.Type))
+				}
 				details["from"] = "address"
-				details["address"] = base64.StdEncoding.EncodeToString(fromAddress.Address.MarshalBinary())
+				details["address"] = address
 				details["salt"] = fromAddress.Salt
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
 				details["from"] = "asset"
 				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()
 			default:
-				panic(fmt.Errorf("Unknown contract id type: %s", args.ContractIdPreimage.Type))
+				panic(fmt.Errorf("unknown contract id type: %s", args.ContractIdPreimage.Type))
 			}
 		case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 			details["type"] = "upload_wasm"
 		default:
-			panic(fmt.Errorf("Unknown host function type: %s", op.Function.Type))
-		}
-		if raw, err := op.Footprint.MarshalBinary(); err == nil {
-			details["footprint"] = base64.StdEncoding.EncodeToString(raw)
+			panic(fmt.Errorf("unknown host function type: %s", op.HostFunction.Type))
 		}
 	default:
-		panic(fmt.Errorf("Unknown operation type: %s", operation.OperationType()))
+		panic(fmt.Errorf("unknown operation type: %s", operation.OperationType()))
 	}
 
 	sponsor, err := operation.getSponsor()
@@ -713,7 +712,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 func (operation *transactionOperationWrapper) parseAssetBalanceChangesFromContractEvents() ([]map[string]interface{}, error) {
 	balanceChanges := []map[string]interface{}{}
 
-	diagnosticEvents, err := operation.transaction.GetOperationEvents(operation.index)
+	diagnosticEvents, err := operation.transaction.GetDiagnosticEvents()
 	if err != nil {
 		// this operation in this context must be an InvokeHostFunctionOp, therefore V3Meta should be present
 		// as it's in same soroban model, so if any err, it's real,

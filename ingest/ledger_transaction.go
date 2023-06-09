@@ -152,8 +152,8 @@ func operationChanges(ops []xdr.OperationMeta, index uint32) []Change {
 	)
 }
 
-// GetOperationEvents returns all contract events emitted by a given operation.
-func (t *LedgerTransaction) GetOperationEvents(operationIndex uint32) ([]xdr.DiagnosticEvent, error) {
+// GetDiagnosticEvents returns all contract events emitted by a given operation.
+func (t *LedgerTransaction) GetDiagnosticEvents() ([]xdr.DiagnosticEvent, error) {
 	// Ignore operations meta if txInternalError https://github.com/stellar/go/issues/2111
 	if t.txInternalError() {
 		return nil, nil
@@ -172,22 +172,22 @@ func (t *LedgerTransaction) GetOperationEvents(operationIndex uint32) ([]xdr.Dia
 			return diagnosticEvents, nil
 		}
 
-		eventsByOperation := t.UnsafeMeta.MustV3().Events
-		if int(operationIndex) >= len(eventsByOperation) {
+		contractEvents := t.UnsafeMeta.MustV3().Events
+		if len(contractEvents) == 0 {
 			// no events were present in this tx meta
 			return nil, nil
 		}
 
 		// tx meta only provided contract events, no diagnostic events, we convert the contract
 		// event to a diagnostic event, to fit the response interface.
-		convertedDiagnosticEvents := make([]xdr.DiagnosticEvent, len(eventsByOperation))
-		for i, event := range eventsByOperation {
+		convertedDiagnosticEvents := make([]xdr.DiagnosticEvent, len(contractEvents))
+		for i, event := range contractEvents {
 			convertedDiagnosticEvents[i] = xdr.DiagnosticEvent{
 				InSuccessfulContractCall: true,
 				Event:                    event,
 			}
 		}
-		return diagnosticEvents, nil
+		return convertedDiagnosticEvents, nil
 	default:
 		return nil, fmt.Errorf("unsupported TransactionMeta version: %v", t.UnsafeMeta.V)
 	}
