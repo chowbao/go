@@ -8,8 +8,8 @@ import (
 type InvokeHostFunction struct {
 	HostFunction  xdr.HostFunction
 	Auth          []xdr.SorobanAuthorizationEntry
-	Ext           xdr.TransactionExt
 	SourceAccount string
+	Ext           xdr.TransactionExt
 }
 
 func (f *InvokeHostFunction) BuildXDR() (xdr.Operation, error) {

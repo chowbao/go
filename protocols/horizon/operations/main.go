@@ -357,19 +357,12 @@ type LiquidityPoolWithdraw struct {
 //	as there is no explicit model in horizon for contract addresses yet.
 type InvokeHostFunction struct {
 	Base
-	HostFunction        HostFunction                 `json:"function"`
+	Function            string                       `json:"function"`
+	Parameters          []HostFunctionParameter      `json:"parameters"`
+	Type                string                       `json:"type"`
+	Address             string                       `json:"address"`
+	Salt                string                       `json:"salt"`
 	AssetBalanceChanges []AssetContractBalanceChange `json:"asset_balance_changes"`
-}
-
-// HostFunction has the values specific to a single host function invocation
-// Type                - the type of host function, invoke_contract, create_contract, upload_wasm
-// Parameters          - array of HostFunctionParameter
-//
-//	one key that will always be incluced is 'type' which will be one of:
-//	xdr.ScValTypeScv's ( Sym, I32, U32, U64, Bytes, B ) or 'n/a' or 'string'
-type HostFunction struct {
-	Type       string                  `json:"type"`
-	Parameters []HostFunctionParameter `json:"parameters"`
 }
 
 // InvokeHostFunction parameter model, intentionally simplified, Value

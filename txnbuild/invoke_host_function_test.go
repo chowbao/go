@@ -81,6 +81,7 @@ func TestInvokeHostFunctionRoundTrip(t *testing.T) {
 				},
 			},
 		},
+		SourceAccount: "GB7BDSZU2Y27LYNLALKKALB52WS2IZWYBDGY6EQBLEED3TJOCVMZRH7H",
 		Ext: xdr.TransactionExt{
 			V: 1,
 			SorobanData: &xdr.SorobanTransactionData{
@@ -125,7 +126,6 @@ func TestInvokeHostFunctionRoundTrip(t *testing.T) {
 				},
 			},
 		},
-		SourceAccount: "GB7BDSZU2Y27LYNLALKKALB52WS2IZWYBDGY6EQBLEED3TJOCVMZRH7H",
 	}
 	testOperationsMarshallingRoundtrip(t, []Operation{invokeHostFunctionOp}, false)
 

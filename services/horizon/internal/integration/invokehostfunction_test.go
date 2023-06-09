@@ -73,7 +73,7 @@ func TestContractInvokeHostFunctionInstallContract(t *testing.T) {
 
 }
 
-func TestContractInvokeHostFunctionCreateContractBySourceAccount(t *testing.T) {
+func TestContractInvokeHostFunctionCreateContractByAddress(t *testing.T) {
 	if integration.GetCoreMaxSupportedProtocol() < 20 {
 		t.Skip("This test run does not support less than Protocol 20")
 	}
@@ -122,13 +122,10 @@ func TestContractInvokeHostFunctionCreateContractBySourceAccount(t *testing.T) {
 
 	invokeHostFunctionOpJson, ok := clientInvokeOp.Embedded.Records[0].(operations.InvokeHostFunction)
 	assert.True(t, ok)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions, 1)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters, 2)
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Type, "create_contract")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[0]["from"], "source_account")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[0]["type"], "string")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[1]["salt"], "110986164698320180327942133831752629430491002266485370052238869825166557303060")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[1]["type"], "string")
+	assert.Equal(t, invokeHostFunctionOpJson.Function, "HostFunctionTypeHostFunctionTypeCreateContract")
+	assert.Equal(t, invokeHostFunctionOpJson.Type, "create_contract")
+	assert.Equal(t, invokeHostFunctionOpJson.Address, sourceAccount.AccountID)
+	assert.Equal(t, invokeHostFunctionOpJson.Salt, "110986164698320180327942133831752629430491002266485370052238869825166557303060")
 }
 
 func TestContractInvokeHostFunctionInvokeStatelessContractFn(t *testing.T) {
@@ -145,6 +142,8 @@ func TestContractInvokeHostFunctionInvokeStatelessContractFn(t *testing.T) {
 		AccountID: itest.Master().Address(),
 	})
 	require.NoError(t, err)
+
+	accountId := xdr.MustAddress(sourceAccount.AccountID)
 
 	// Install the contract
 
@@ -185,17 +184,42 @@ func TestContractInvokeHostFunctionInvokeStatelessContractFn(t *testing.T) {
 		U64:  &secondParamValue,
 	}
 
-	invokeHostFunctionOp := &txnbuild.InvokeHostFunctions{
-		Functions: []xdr.HostFunction{
+	invokeHostFunctionOp := &txnbuild.InvokeHostFunction{
+		HostFunction: xdr.HostFunction{
+			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
+			InvokeContract: &xdr.ScVec{
+				contractIdParameter,
+				contractFnParameter,
+				firstParamScVal,
+				secondParamScVal,
+			},
+		},
+		Auth: []xdr.SorobanAuthorizationEntry{
 			{
-				Args: xdr.HostFunctionArgs{
-					Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
-					InvokeContract: &xdr.ScVec{
-						contractIdParameter,
-						contractFnParameter,
-						firstParamScVal,
-						secondParamScVal,
+				Credentials: xdr.SorobanCredentials{
+					Type: xdr.SorobanCredentialsTypeSorobanCredentialsAddress,
+					Address: &xdr.SorobanAddressCredentials{
+						Address: xdr.ScAddress{
+							Type:      xdr.ScAddressTypeScAddressTypeAccount,
+							AccountId: &accountId,
+						},
+						Nonce:         0,
+						SignatureArgs: nil,
 					},
+				},
+				RootInvocation: xdr.SorobanAuthorizedInvocation{
+					Function: xdr.SorobanAuthorizedFunction{
+						Type: xdr.SorobanAuthorizedFunctionTypeSorobanAuthorizedFunctionTypeContractFn,
+						ContractFn: &xdr.SorobanAuthorizedContractFunction{
+							ContractAddress: xdr.ScAddress{
+								Type:      xdr.ScAddressTypeScAddressTypeAccount,
+								AccountId: &accountId,
+							},
+							FunctionName: "foo",
+							Args:         nil,
+						},
+					},
+					SubInvocations: nil,
 				},
 			},
 		},
@@ -240,10 +264,8 @@ func TestContractInvokeHostFunctionInvokeStatelessContractFn(t *testing.T) {
 	assert.Equal(t, invokeHostFunctionResult.Code, xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess)
 
 	// check the function response, should have summed the two input numbers
-	scvals := invokeHostFunctionResult.MustSuccess()
-	for _, scval := range scvals {
-		assert.Equal(t, xdr.Uint64(9), scval.MustU64())
-	}
+	hash := invokeHostFunctionResult.MustSuccess()
+	assert.Equal(t, xdr.Uint64(9), hash)
 
 	clientInvokeOp, err := itest.Client().Operations(horizonclient.OperationRequest{
 		ForTransaction: tx.Hash,
@@ -252,17 +274,17 @@ func TestContractInvokeHostFunctionInvokeStatelessContractFn(t *testing.T) {
 
 	invokeHostFunctionOpJson, ok := clientInvokeOp.Embedded.Records[0].(operations.InvokeHostFunction)
 	assert.True(t, ok)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions, 1)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters, 4)
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Type, "invoke_contract")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[0]["value"], "AAAADQAAACDhq+vRxjISTR62JpK1SAnzz1cZKpSpkRlwLJH6Zrzssg==")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[0]["type"], "Bytes")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[1]["value"], "AAAADwAAAANhZGQA")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[1]["type"], "Sym")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[2]["value"], "AAAABQAAAAAAAAAE")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[2]["type"], "U64")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[3]["value"], "AAAABQAAAAAAAAAF")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[3]["type"], "U64")
+	assert.Len(t, invokeHostFunctionOpJson.Parameters, 2)
+	assert.Equal(t, invokeHostFunctionOpJson.Function, "HostFunctionTypeHostFunctionTypeInvokeContract")
+	assert.Equal(t, invokeHostFunctionOpJson.Type, "invoke_contract")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[0].Value, "AAAADQAAACDhq+vRxjISTR62JpK1SAnzz1cZKpSpkRlwLJH6Zrzssg==")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[0].Type, "Bytes")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[1].Value, "AAAADwAAAANhZGQA")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[1].Type, "Sym")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[2].Value, "AAAABQAAAAAAAAAE")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[2].Type, "U64")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[3].Value, "AAAABQAAAAAAAAAF")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[3].Type, "U64")
 }
 
 func TestContractInvokeHostFunctionInvokeStatefulContractFn(t *testing.T) {
@@ -308,16 +330,12 @@ func TestContractInvokeHostFunctionInvokeStatefulContractFn(t *testing.T) {
 	}
 
 	contractStateFootprintSym := xdr.ScSymbol("COUNTER")
-	invokeHostFunctionOp := &txnbuild.InvokeHostFunctions{
-		Functions: []xdr.HostFunction{
-			{
-				Args: xdr.HostFunctionArgs{
-					Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
-					InvokeContract: &xdr.ScVec{
-						contractIdParameter,
-						contractFnParameter,
-					},
-				},
+	invokeHostFunctionOp := &txnbuild.InvokeHostFunction{
+		HostFunction: xdr.HostFunction{
+			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
+			InvokeContract: &xdr.ScVec{
+				contractIdParameter,
+				contractFnParameter,
 			},
 		},
 		SourceAccount: sourceAccount.AccountID,
@@ -372,10 +390,8 @@ func TestContractInvokeHostFunctionInvokeStatefulContractFn(t *testing.T) {
 	assert.Equal(t, invokeHostFunctionResult.Code, xdr.InvokeHostFunctionResultCodeInvokeHostFunctionSuccess)
 
 	// check the function response, should have incremented state from 0 to 1
-	scvals := invokeHostFunctionResult.MustSuccess()
-	for _, scval := range scvals {
-		assert.Equal(t, xdr.Uint32(1), scval.MustU32())
-	}
+	hash := invokeHostFunctionResult.MustSuccess()
+	assert.Equal(t, xdr.Uint32(1), hash)
 
 	clientInvokeOp, err := itest.Client().Operations(horizonclient.OperationRequest{
 		ForTransaction: tx.Hash,
@@ -384,13 +400,13 @@ func TestContractInvokeHostFunctionInvokeStatefulContractFn(t *testing.T) {
 
 	invokeHostFunctionOpJson, ok := clientInvokeOp.Embedded.Records[0].(operations.InvokeHostFunction)
 	assert.True(t, ok)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions, 1)
-	assert.Len(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters, 2)
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Type, "invoke_contract")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[0]["value"], "AAAADQAAACDhq+vRxjISTR62JpK1SAnzz1cZKpSpkRlwLJH6Zrzssg==")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[0]["type"], "Bytes")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[1]["value"], "AAAADwAAAAlpbmNyZW1lbnQAAAA=")
-	assert.Equal(t, invokeHostFunctionOpJson.HostFunctions[0].Parameters[1]["type"], "Sym")
+	assert.Len(t, invokeHostFunctionOpJson.Parameters, 2)
+	assert.Equal(t, invokeHostFunctionOpJson.Function, "HostFunctionTypeHostFunctionTypeInvokeContract")
+	assert.Equal(t, invokeHostFunctionOpJson.Type, "invoke_contract")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[0].Value, "AAAADQAAACDhq+vRxjISTR62JpK1SAnzz1cZKpSpkRlwLJH6Zrzssg==")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[0].Type, "Bytes")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[1].Value, "AAAADwAAAAlpbmNyZW1lbnQAAAA=")
+	assert.Equal(t, invokeHostFunctionOpJson.Parameters[1].Type, "Sym")
 }
 
 const stroopsIn1XLM = int64(10_000_000)
@@ -413,28 +429,20 @@ func getMaxSorobanTransactionData(fp xdr.LedgerFootprint) *xdr.SorobanTransactio
 	}
 }
 
-func assembleInstallContractCodeOp(t *testing.T, sourceAccount string, wasmFileName string) *txnbuild.InvokeHostFunctions {
-	// Assemble the InvokeHostFunction CreateContract operation:
+func assembleInstallContractCodeOp(t *testing.T, sourceAccount string, wasmFileName string) *txnbuild.InvokeHostFunction {
+	// Assemble the InvokeHostFunction UploadContractWasm operation:
 	// CAP-0047 - https://github.com/stellar/stellar-protocol/blob/master/core/cap-0047.md#creating-a-contract-using-invokehostfunctionop
 
 	contract, err := os.ReadFile(filepath.Join("testdata", wasmFileName))
 	require.NoError(t, err)
 	t.Logf("Contract File Contents: %v", hex.EncodeToString(contract))
 
-	installContractCodeArgs, err := xdr.UploadContractWasmArgs{Code: contract}.MarshalBinary()
-	assert.NoError(t, err)
-	contractHash := sha256.Sum256(installContractCodeArgs)
+	contractHash := sha256.Sum256(contract)
 
-	return &txnbuild.InvokeHostFunctions{
-		Functions: []xdr.HostFunction{
-			{
-				Args: xdr.HostFunctionArgs{
-					Type: xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm,
-					UploadContractWasm: &xdr.UploadContractWasmArgs{
-						Code: contract,
-					},
-				},
-			},
+	return &txnbuild.InvokeHostFunction{
+		HostFunction: xdr.HostFunction{
+			Type: xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm,
+			Wasm: &contract,
 		},
 		SourceAccount: sourceAccount,
 		Ext: xdr.TransactionExt{
@@ -453,7 +461,7 @@ func assembleInstallContractCodeOp(t *testing.T, sourceAccount string, wasmFileN
 	}
 }
 
-func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName string, contractSalt string, passPhrase string) *txnbuild.InvokeHostFunctions {
+func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName string, contractSalt string, passPhrase string) *txnbuild.InvokeHostFunction {
 	// Assemble the InvokeHostFunction CreateContract operation:
 	// CAP-0047 - https://github.com/stellar/stellar-protocol/blob/master/core/cap-0047.md#creating-a-contract-using-invokehostfunctionop
 
@@ -462,26 +470,31 @@ func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName s
 
 	salt := sha256.Sum256([]byte(contractSalt))
 	t.Logf("Salt hash: %v", hex.EncodeToString(salt[:]))
+	saltParameter := xdr.Uint256(salt)
 
 	networkId := xdr.Hash(sha256.Sum256([]byte(passPhrase)))
+	accountId := xdr.MustAddress(sourceAccount)
 	preImage := xdr.HashIdPreimage{
-		// TODO(chowbao):Need to update EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount to EnvelopeTypeEnvelopeTypeContractId
-		Type: xdr.EnvelopeTypeEnvelopeTypeContractIdFromSourceAccount,
-		SourceAccountContractId: &xdr.HashIdPreimageSourceAccountContractId{
+		Type: xdr.EnvelopeTypeEnvelopeTypeContractId,
+		ContractId: &xdr.HashIdPreimageContractId{
 			NetworkId: networkId,
-			Salt:      salt,
+			ContractIdPreimage: xdr.ContractIdPreimage{
+				Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
+				FromAddress: &xdr.ContractIdPreimageFromAddress{
+					Address: xdr.ScAddress{
+						Type:      xdr.ScAddressTypeScAddressTypeAccount,
+						AccountId: &accountId,
+					},
+					Salt: salt,
+				},
+			},
 		},
 	}
-	preImage.SourceAccountContractId.SourceAccount.SetAddress(sourceAccount)
 	xdrPreImageBytes, err := preImage.MarshalBinary()
 	require.NoError(t, err)
 	hashedContractID := sha256.Sum256(xdrPreImageBytes)
 
-	saltParameter := xdr.Uint256(salt)
-
-	installContractCodeArgs, err := xdr.UploadContractWasmArgs{Code: contract}.MarshalBinary()
-	assert.NoError(t, err)
-	contractHash := xdr.Hash(sha256.Sum256(installContractCodeArgs))
+	contractHash := xdr.Hash(sha256.Sum256(contract))
 
 	ledgerKey := xdr.LedgerKeyContractData{
 		ContractId: xdr.Hash(hashedContractID),
@@ -491,21 +504,23 @@ func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName s
 		},
 	}
 
-	return &txnbuild.InvokeHostFunctions{
-		Functions: []xdr.HostFunction{
-			{
-				Args: xdr.HostFunctionArgs{
-					Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
-					CreateContract: &xdr.CreateContractArgs{
-						ContractId: xdr.ContractId{
-							Type: xdr.ContractIdTypeContractIdFromSourceAccount,
-							Salt: &saltParameter,
+	return &txnbuild.InvokeHostFunction{
+		HostFunction: xdr.HostFunction{
+			Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
+			CreateContract: &xdr.CreateContractArgs{
+				ContractIdPreimage: xdr.ContractIdPreimage{
+					Type: xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
+					FromAddress: &xdr.ContractIdPreimageFromAddress{
+						Address: xdr.ScAddress{
+							Type:      xdr.ScAddressTypeScAddressTypeAccount,
+							AccountId: &accountId,
 						},
-						Executable: xdr.ScContractExecutable{
-							Type:   xdr.ScContractExecutableTypeSccontractExecutableWasmRef,
-							WasmId: &contractHash,
-						},
+						Salt: saltParameter,
 					},
+				},
+				Executable: xdr.ScContractExecutable{
+					Type:   xdr.ScContractExecutableTypeSccontractExecutableWasmRef,
+					WasmId: &contractHash,
 				},
 			},
 		},
