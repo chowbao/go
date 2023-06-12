@@ -444,9 +444,9 @@ func (a Asset) ContractID(passphrase string) ([32]byte, error) {
 		ContractId: &HashIdPreimageContractId{
 			NetworkId: networkId,
 			ContractIdPreimage: ContractIdPreimage{
-                Type: ContractIdPreimageTypeContractIdPreimageFromAsset,
-                FromAsset: &a,
-            },
+				Type:      ContractIdPreimageTypeContractIdPreimageFromAsset,
+				FromAsset: &a,
+			},
 		},
 	}
 	xdrPreImageBytes, err := preImage.MarshalBinary()
