@@ -720,10 +720,9 @@ func TestContractClawbackFromContract(t *testing.T) {
 		itest.Master(),
 		balance(itest, issuer, asset, contractAddressParam(recipientContractID)),
 	)
-	assert.Equal(itest.CurrentTest(), xdr.Uint64(9900000000), (*balanceAmount))
-	//assert.Equal(itest.CurrentTest(), xdr.ScValTypeScvI128, balanceAmount.Type)
-	//assert.Equal(itest.CurrentTest(), xdr.Uint64(9900000000), (*balanceAmount.I128).Lo)
-	//assert.Equal(itest.CurrentTest(), xdr.Uint64(0), (*balanceAmount.I128).Hi)
+	assert.Equal(itest.CurrentTest(), xdr.ScValTypeScvI128, balanceAmount.Type)
+	assert.Equal(itest.CurrentTest(), xdr.Uint64(9900000000), (*balanceAmount.I128).Lo)
+	assert.Equal(itest.CurrentTest(), xdr.Uint64(0), (*balanceAmount.I128).Hi)
 
 	assertContainsEffect(t, getTxEffects(itest, clawTx, asset),
 		effects.EffectContractDebited)
