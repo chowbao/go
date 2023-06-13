@@ -131,12 +131,12 @@ func TestInvokeHostFnDetailsInPaymentOperations(t *testing.T) {
 	tt.Assert.Len(records, 1)
 
 	op := records[0].(operations.InvokeHostFunction)
-	tt.Assert.Equal(op.HostFunction.Type, "invoke_contract")
-	tt.Assert.Equal(len(op.HostFunction.Parameters), 2)
-	tt.Assert.Equal(op.HostFunction.Parameters[0].Value, "AAAADwAAAAdmbl9uYW1lAA==")
-	tt.Assert.Equal(op.HostFunction.Parameters[0].Type, "Sym")
-	tt.Assert.Equal(op.HostFunction.Parameters[1].Value, "AAAAAwAAAAI=")
-	tt.Assert.Equal(op.HostFunction.Parameters[1].Type, "U32")
+	tt.Assert.Equal(op.Type, "invoke_contract")
+	tt.Assert.Equal(len(op.Parameters), 2)
+	tt.Assert.Equal(op.Parameters[0].Value, "AAAADwAAAAdmbl9uYW1lAA==")
+	tt.Assert.Equal(op.Parameters[0].Type, "Sym")
+	tt.Assert.Equal(op.Parameters[1].Value, "AAAAAwAAAAI=")
+	tt.Assert.Equal(op.Parameters[1].Type, "U32")
 
 	tt.Assert.Equal(len(op.AssetBalanceChanges), 4)
 	tt.Assert.Equal(op.AssetBalanceChanges[0].From, "C_CONTRACT_ADDRESS1")
