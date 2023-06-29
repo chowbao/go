@@ -1,6 +1,6 @@
 #![no_std]
 use soroban_sdk::{
-    contractimpl, contracttype, token, Address, BytesN, Env,
+    contractimpl, contracttype, token, Address, Env,
 };
 
 #[contracttype]
@@ -8,8 +8,8 @@ pub enum DataKey {
     Token,
 }
 
-fn get_token(e: &Env) -> BytesN<32> {
-    e.storage().get_unchecked(&DataKey::Token).unwrap()
+fn get_token(e: &Env) -> Address {
+    e.storage().get(&DataKey::Token).unwrap()
 }
 
 pub struct SACTest;
@@ -17,11 +17,11 @@ pub struct SACTest;
 #[contractimpl]
 impl SACTest {
 
-    pub fn init(e: Env, contract: BytesN<32>) {
+    pub fn init(e: Env, contract: Address) {
         e.storage().set(&DataKey::Token, &contract);
     }
 
-    pub fn get_token(e: Env) -> BytesN<32> {
+    pub fn get_token(e: Env) -> Address {
         get_token(&e)
     }
 
