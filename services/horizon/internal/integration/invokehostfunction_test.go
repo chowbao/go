@@ -514,10 +514,13 @@ func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName s
 			ContractId: &hashedContractID,
 		},
 		Key: xdr.ScVal{
+			Type: xdr.ScValTypeScvLedgerKeyContractInstance,
 			// Tsachi - This need to be updated.
 			//Type: xdr.ScValTypeScvLedgerKeyContractExecutable,
 			// symbolic: no value
 		},
+		Durability: xdr.ContractDataDurabilityPersistent,
+		BodyType:   xdr.ContractEntryBodyTypeDataEntry,
 	}
 
 	return &txnbuild.InvokeHostFunction{
