@@ -543,6 +543,7 @@ func assembleCreateContractOp(t *testing.T, sourceAccount string, wasmFileName s
 				},
 			},
 		},
+		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
 		Ext: xdr.TransactionExt{
 			V: 1,
