@@ -93,10 +93,15 @@ func TestContractInvokeHostFunctionCreateContractByAddress(t *testing.T) {
 	// Set a very generous fee (10 XLM) which would satisfy any contract invocation
 	itest.MustSubmitOperationsWithFee(&sourceAccount, itest.Master(), 10*stroopsIn1XLM, installContractOp)
 
+	itest.PreflightHostFunctions(itest.MasterAccount(), *installContractOp)
 	// Create the contract
 
 	require.NoError(t, err)
 	createContractOp := assembleCreateContractOp(t, itest.Master().Address(), add_u64_contract, "a1", itest.GetPassPhrase())
+	f, _ := itest.PreflightHostFunctions(itest.MasterAccount(), *createContractOp)
+
+	err = f.Validate()
+
 	tx, err := itest.SubmitOperationsWithFee(&sourceAccount, itest.Master(), 10*stroopsIn1XLM, createContractOp)
 	require.NoError(t, err)
 
