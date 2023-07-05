@@ -13,14 +13,15 @@ impl Contract {
 
 #[cfg(test)]
 mod test {
-    use soroban_sdk::{BytesN, Env};
+    use soroban_sdk::{BytesN, Env, Address};
 
     use crate::{Contract, ContractClient};
 
     #[test]
     fn test_add() {
         let e = Env::default();
-        let contract_id = BytesN::from_array(&e, &[0; 32]);
+        let contract_id= Address::from_contract_id(&BytesN::from_array(&e, &[0; 32]));
+       
         e.register_contract(&contract_id, Contract);
         let client = ContractClient::new(&e, &contract_id);
 
