@@ -11,8 +11,8 @@ jobs:
     name: Integration tests
     strategy:
       matrix:
-        os: [ubuntu-20.04]
-        go: ["1.19.6", "1.20.1"]
+        os: [ubuntu-20.04, ubuntu-22.04]
+        go: ["1.19", "1.20"]
         pg: [9.6.5]
         ingestion-backend: [db, captive-core, captive-core-remote-storage]
         protocol-version: [19, 20]
@@ -37,8 +37,8 @@ jobs:
       PROTOCOL_20_CORE_DEBIAN_PKG_VERSION: 19.11.1-1371.6c004ae12.focal~soroban
       PROTOCOL_20_CORE_DOCKER_IMG: sreuland/stellar-core:19.11.1-1371.6c004ae12.focal-soroban
       PROTOCOL_20_SOROBAN_RPC_DOCKER_IMG: sreuland/stellar-soroban-rpc:eda1905e30627
-      PROTOCOL_19_CORE_DEBIAN_PKG_VERSION: 19.5.0-1108.ca2fb0605.focal
-      PROTOCOL_19_CORE_DOCKER_IMG: stellar/stellar-core:19.5.0-1108.ca2fb0605.focal
+      PROTOCOL_19_CORE_DEBIAN_PKG_VERSION: 19.11.0-1323.7fb6d5e88.focal
+      PROTOCOL_19_CORE_DOCKER_IMG: stellar/stellar-core:19.11.0-1323.7fb6d5e88.focal
       PGHOST: localhost
       PGPORT: 5432
       PGUSER: postgres
@@ -115,9 +115,9 @@ jobs:
 
   verify-range:
     name: Test (and push) verify-range image
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
-      STELLAR_CORE_VERSION: 19.10.0-1275.bff2c2b37.focal
+      STELLAR_CORE_VERSION: 19.11.0-1323.7fb6d5e88.focal
       CAPTIVE_CORE_STORAGE_PATH: /tmp
     steps:
     - uses: actions/checkout@v3
