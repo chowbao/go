@@ -86,25 +86,18 @@ func TestContractInvokeHostFunctionCreateContractByAddress(t *testing.T) {
 	sourceAccount, err := itest.Client().AccountDetail(horizonclient.AccountRequest{
 		AccountID: itest.Master().Address(),
 	})
+	require.NoError(t, err)
 
 	// Install the contract
-
 	installContractOp := assembleInstallContractCodeOp(t, itest.Master().Address(), add_u64_contract)
 	preFlightOp, minFee := itest.PreflightHostFunctions(&sourceAccount, *installContractOp)
-
-	// Set a very generous fee (10 XLM) which would satisfy any contract invocation
+	// Set fee to preflight recommended
 	itest.MustSubmitOperationsWithFee(&sourceAccount, itest.Master(), minFee, &preFlightOp)
-
-	itest.PreflightHostFunctions(itest.MasterAccount(), *installContractOp)
+    
 	// Create the contract
-
-	require.NoError(t, err)
 	createContractOp := assembleCreateContractOp(t, itest.Master().Address(), add_u64_contract, "a1", itest.GetPassPhrase())
 	preFlightOp, minFee = itest.PreflightHostFunctions(&sourceAccount, *createContractOp)
-
-	err = preFlightOp.Validate()
-	require.NoError(t, err)
-
+    
 	tx, err := itest.SubmitOperationsWithFee(&sourceAccount, itest.Master(), minFee, &preFlightOp)
 	require.NoError(t, err)
 
