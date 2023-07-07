@@ -339,7 +339,7 @@ func (s *OperationsProcessorTestSuiteLedger) TestOperationTypeInvokeHostFunction
 		s.Assert().Equal(details["type"], "create_contract")
 		s.Assert().Equal(details["from"], "address")
 		s.Assert().Equal(details["address"], "GB7BDSZU2Y27LYNLALKKALB52WS2IZWYBDGY6EQBLEED3TJOCVMZRH7H")
-		s.Assert().Equal(details["salt"], xdr.Uint256{1})
+		s.Assert().Equal(details["salt"], xdr.Uint256{1}.String())
 	})
 
 	s.T().Run("UploadContractWasm", func(t *testing.T) {

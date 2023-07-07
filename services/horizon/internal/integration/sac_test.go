@@ -1069,10 +1069,6 @@ func footprintForRecipientAddress(itest *integration.Test, contractAsset xdr.Ass
 }
 
 func createSAC(itest *integration.Test, sourceAccount string, asset xdr.Asset) *txnbuild.InvokeHostFunction {
-	footPrint := xdr.LedgerFootprint{
-		ReadWrite: baseSACFootPrint(itest, asset),
-	}
-
 	invokeHostFunction := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeCreateContract,
@@ -1088,10 +1084,6 @@ func createSAC(itest *integration.Test, sourceAccount string, asset xdr.Asset) *
 			},
 		},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	return invokeHostFunction
@@ -1102,7 +1094,6 @@ func mint(itest *integration.Test, sourceAccount string, asset xdr.Asset, assetA
 }
 
 func mintWithAmt(itest *integration.Test, sourceAccount string, asset xdr.Asset, assetAmount xdr.ScVal, recipient xdr.ScVal) *txnbuild.InvokeHostFunction {
-	footPrint := footprintForRecipientAddress(itest, asset, *recipient.Address)
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1114,12 +1105,7 @@ func mintWithAmt(itest *integration.Test, sourceAccount string, asset xdr.Asset,
 				assetAmount,
 			},
 		},
-		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	invokeHostFn.Auth = addAuthNextInvokerFlow(
@@ -1134,10 +1120,6 @@ func mintWithAmt(itest *integration.Test, sourceAccount string, asset xdr.Asset,
 }
 
 func initAssetContract(itest *integration.Test, sourceAccount string, asset xdr.Asset, sacTestcontractID, sacTestcontractHash xdr.Hash) *txnbuild.InvokeHostFunction {
-	footPrint := xdr.LedgerFootprint{
-		ReadOnly:  sacTestContractCodeLedgerKeys(sacTestcontractID, sacTestcontractHash),
-		ReadWrite: []xdr.LedgerKey{tokenLedgerKey(sacTestcontractID)},
-	}
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1147,12 +1129,7 @@ func initAssetContract(itest *integration.Test, sourceAccount string, asset xdr.
 				contractIDParam(stellarAssetContractID(itest, asset)),
 			},
 		},
-		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	invokeHostFn.Auth = addAuthNextInvokerFlow(
@@ -1166,7 +1143,6 @@ func initAssetContract(itest *integration.Test, sourceAccount string, asset xdr.
 }
 
 func clawback(itest *integration.Test, sourceAccount string, asset xdr.Asset, assetAmount string, recipient xdr.ScVal) *txnbuild.InvokeHostFunction {
-	footPrint := footprintForRecipientAddress(itest, asset, *recipient.Address)
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1178,12 +1154,7 @@ func clawback(itest *integration.Test, sourceAccount string, asset xdr.Asset, as
 				i128Param(0, uint64(amount.MustParse(assetAmount))),
 			},
 		},
-		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	invokeHostFn.Auth = addAuthNextInvokerFlow(
@@ -1198,25 +1169,6 @@ func clawback(itest *integration.Test, sourceAccount string, asset xdr.Asset, as
 }
 
 func contractBalance(itest *integration.Test, sourceAccount string, asset xdr.Asset, sacTestcontractID xdr.Hash) *txnbuild.InvokeHostFunction {
-	contractID := stellarAssetContractID(itest, asset)
-	footPrint := xdr.LedgerFootprint{
-		ReadOnly: append(
-			addressLedgerKeys(itest, asset, *contractAddressParam(sacTestcontractID).Address),
-			xdr.LedgerKey{
-				Type: xdr.LedgerEntryTypeContractData,
-				ContractData: &xdr.LedgerKeyContractData{
-					Contract: xdr.ScAddress{
-						Type:       xdr.ScAddressTypeScAddressTypeContract,
-						ContractId: &contractID,
-					},
-					Key: xdr.ScVal{
-						// Tsachi - This need to be updated.
-						//Type: xdr.ScValTypeScvLedgerKeyContractExecutable,
-					},
-				},
-			},
-		),
-	}
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1227,10 +1179,6 @@ func contractBalance(itest *integration.Test, sourceAccount string, asset xdr.As
 			},
 		},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	return invokeHostFn
@@ -1254,12 +1202,7 @@ func transferWithAmount(itest *integration.Test, sourceAccount string, asset xdr
 				assetAmount,
 			},
 		},
-		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	invokeHostFn.Auth = addAuthNextInvokerFlow(
@@ -1275,11 +1218,6 @@ func transferWithAmount(itest *integration.Test, sourceAccount string, asset xdr
 }
 
 func transferFromContract(itest *integration.Test, sourceAccount string, asset xdr.Asset, sacTestcontractID xdr.Hash, sacTestContractHash xdr.Hash, assetAmount string, recipient xdr.ScVal) *txnbuild.InvokeHostFunction {
-	footPrint := footprintForRecipientAddress(itest, asset, *recipient.Address)
-	footPrint.ReadOnly = append(footPrint.ReadOnly, tokenLedgerKey(sacTestcontractID))
-	footPrint.ReadOnly = append(footPrint.ReadOnly, sacTestContractCodeLedgerKeys(sacTestcontractID, sacTestContractHash)...)
-	footPrint.ReadWrite = append(footPrint.ReadWrite, addressLedgerKeys(itest, asset, *contractAddressParam(sacTestcontractID).Address)...)
-
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1291,10 +1229,6 @@ func transferFromContract(itest *integration.Test, sourceAccount string, asset x
 			},
 		},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	return invokeHostFn
@@ -1302,9 +1236,6 @@ func transferFromContract(itest *integration.Test, sourceAccount string, asset x
 
 // Invokes burn_self from the sac_test contract (which just burns assets from itself)
 func burnSelf(itest *integration.Test, sourceAccount string, asset xdr.Asset, sacTestcontractID xdr.Hash, sacTestContractHash xdr.Hash, assetAmount string) *txnbuild.InvokeHostFunction {
-	footPrint := footprintForRecipientAddress(itest, asset, *contractAddressParam(sacTestcontractID).Address)
-	footPrint.ReadOnly = append(footPrint.ReadOnly, tokenLedgerKey(sacTestcontractID))
-	footPrint.ReadOnly = append(footPrint.ReadOnly, sacTestContractCodeLedgerKeys(sacTestcontractID, sacTestContractHash)...)
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1314,12 +1245,7 @@ func burnSelf(itest *integration.Test, sourceAccount string, asset xdr.Asset, sa
 				i128Param(0, uint64(amount.MustParse(assetAmount))),
 			},
 		},
-		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	invokeHostFn.Auth = addAuthNextInvokerFlow(
@@ -1333,7 +1259,6 @@ func burnSelf(itest *integration.Test, sourceAccount string, asset xdr.Asset, sa
 }
 
 func burn(itest *integration.Test, sourceAccount string, asset xdr.Asset, assetAmount string) *txnbuild.InvokeHostFunction {
-	footPrint := footprintForRecipientAddress(itest, asset, *accountAddressParam(sourceAccount).Address)
 	invokeHostFn := &txnbuild.InvokeHostFunction{
 		HostFunction: xdr.HostFunction{
 			Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract,
@@ -1344,12 +1269,7 @@ func burn(itest *integration.Test, sourceAccount string, asset xdr.Asset, assetA
 				i128Param(0, uint64(amount.MustParse(assetAmount))),
 			},
 		},
-		Auth:          []xdr.SorobanAuthorizationEntry{},
 		SourceAccount: sourceAccount,
-		Ext: xdr.TransactionExt{
-			V:           1,
-			SorobanData: getMaxSorobanTransactionData(footPrint),
-		},
 	}
 
 	invokeHostFn.Auth = addAuthNextInvokerFlow(
@@ -1365,7 +1285,9 @@ func burn(itest *integration.Test, sourceAccount string, asset xdr.Asset, assetA
 
 func assertInvokeHostFnSucceeds(itest *integration.Test, signer *keypair.Full, op *txnbuild.InvokeHostFunction) (*xdr.ScVal, string) {
 	acc := itest.MustGetAccount(signer)
-	tx, err := itest.SubmitOperationsWithFee(&acc, signer, 10*stroopsIn1XLM, op)
+
+	preFlightOp, minFee := itest.PreflightHostFunctions(&acc, *op)
+	tx, err := itest.SubmitOperationsWithFee(&acc, signer, minFee, &preFlightOp)
 	require.NoError(itest.CurrentTest(), err)
 
 	clientTx, err := itest.Client().TransactionDetail(tx.Hash)

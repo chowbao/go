@@ -676,7 +676,7 @@ func (operation *transactionOperationWrapper) Details() (map[string]interface{},
 				}
 				details["from"] = "address"
 				details["address"] = address
-				details["salt"] = fromAddress.Salt
+				details["salt"] = fromAddress.Salt.String()
 			case xdr.ContractIdPreimageTypeContractIdPreimageFromAsset:
 				details["from"] = "asset"
 				details["asset"] = args.ContractIdPreimage.MustFromAsset().StringCanonical()

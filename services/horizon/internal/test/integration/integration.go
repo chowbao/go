@@ -531,6 +531,18 @@ func (i *Test) waitForSorobanRPC() {
 	i.t.Fatal("SorobanRPC unhealthy after 30s")
 }
 
+type RPCSimulateHostFunctionResult struct {
+	Auth []string `json:"auth"`
+	XDR  string   `json:"xdr"`
+}
+
+type RPCSimulateTxResponse struct {
+	Error           string                          `json:"error,omitempty"`
+	TransactionData string                          `json:"transactionData"`
+	Results         []RPCSimulateHostFunctionResult `json:"results"`
+	MinResourceFee  int64                           `json:"minResourceFee,string"`
+}
+
 // Wait for SorobanRPC to be up
 func (i *Test) PreflightHostFunctions(sourceAccount txnbuild.Account, function txnbuild.InvokeHostFunction) (txnbuild.InvokeHostFunction, int64) {
 	// TODO: soroban-tools should be exporting a proper Go client
@@ -542,12 +554,8 @@ func (i *Test) PreflightHostFunctions(sourceAccount txnbuild.Account, function t
 	assert.NoError(i.t, err)
 	base64, err := tx.Base64()
 	assert.NoError(i.t, err)
-	var result struct {
-		Error           string   `json:"error,omitempty"`
-		TransactionData string   `json:"transactionData"`
-		Auth            []string `json:"auth"`
-		MinResourceFee  int64    `json:"minResourceFee,string"`
-	}
+	result := RPCSimulateTxResponse{}
+	fmt.Printf("Preflight TX:\n\n%v \n\n", base64)
 	err = sorobanRPCClient.CallResult(context.Background(), "simulateTransaction", struct {
 		Transaction string `json:"transaction"`
 	}{base64}, &result)
@@ -562,12 +570,14 @@ func (i *Test) PreflightHostFunctions(sourceAccount txnbuild.Account, function t
 		SorobanData: &transactionData,
 	}
 	var funAuth []xdr.SorobanAuthorizationEntry
-	for _, authBase64 := range result.Auth {
-		var authEntry xdr.SorobanAuthorizationEntry
-		err = xdr.SafeUnmarshalBase64(authBase64, &authEntry)
-		assert.NoError(i.t, err)
-		fmt.Printf("Auth:\n\n%# +v\n\n", pretty.Formatter(authEntry))
-		funAuth = append(funAuth, authEntry)
+	for _, authElement := range result.Results {
+		for _, authBase64 := range authElement.Auth {
+			var authEntry xdr.SorobanAuthorizationEntry
+			err = xdr.SafeUnmarshalBase64(authBase64, &authEntry)
+			assert.NoError(i.t, err)
+			fmt.Printf("Auth:\n\n%# +v\n\n", pretty.Formatter(authEntry))
+			funAuth = append(funAuth, authEntry)
+		}
 	}
 	function.Auth = funAuth
 
