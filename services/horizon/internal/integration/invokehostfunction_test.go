@@ -128,13 +128,6 @@ func TestContractInvokeHostFunctionCreateContractByAddress(t *testing.T) {
 }
 
 func TestContractInvokeHostFunctionInvokeStatelessContractFn(t *testing.T) {
-	os.Setenv("HORIZON_INTEGRATION_TESTS_ENABLE_SOROBAN_RPC", "true")
-	os.Setenv("HORIZON_INTEGRATION_TESTS_CORE_MAX_SUPPORTED_PROTOCOL", "20")
-	os.Setenv("HORIZON_INTEGRATION_TESTS_SOROBAN_RPC_DOCKER_IMG", "sreuland/stellar-soroban-rpc:b18a52c085206")
-	os.Setenv("HORIZON_INTEGRATION_TESTS_ENABLED", "true")
-	os.Setenv("HORIZON_INTEGRATION_TESTS_DOCKER_IMG", "sreuland/stellar-core:19.11.1-1371.6c004ae12.focal-soroban")
-	integration.RunWithSorobanRPC = true
-
 	if integration.GetCoreMaxSupportedProtocol() < 20 {
 		t.Skip("This test run does not support less than Protocol 20")
 	}
