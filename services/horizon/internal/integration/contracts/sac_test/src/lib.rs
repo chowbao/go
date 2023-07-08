@@ -42,6 +42,7 @@ fn test() {
     use soroban_sdk::testutils::Address as _;
 
     let env = Env::default();
+    env.mock_all_auths();
     let admin = Address::random(&env);
     let token_contract_id = env.register_stellar_asset_contract(admin.clone());
 
