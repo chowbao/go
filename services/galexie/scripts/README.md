@@ -31,6 +31,7 @@ The files in this directory are examples in different ways to use Galexie to bac
 * This YAML file is a job configuration that creates compute instances to run Galexie using [GCP batch](https://cloud.google.com/batch)
 * This will not run as is and will need users to modify the tasks as well as the mount disks containing the Galexie and captive core configuration files
 * This file can be used like so
+
 ```
 gcloud batch jobs submit galexie-batch --config batch_config.yml
 ```
