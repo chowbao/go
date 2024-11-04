@@ -1,10 +1,12 @@
+// Note: This is placed in the xdrill directory/package just for this example
+// Processors may be placed in a different location/package; To be discussed
 package xdrill
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/stellar/go/exp/xdrill/ledgers"
+	"github.com/stellar/go/exp/xdrill/ledger"
 	"github.com/stellar/go/xdr"
 )
 
@@ -33,7 +35,7 @@ type LedgerClosedOutput struct {
 }
 
 func TransformLedger(lcm xdr.LedgerCloseMeta) (LedgerClosedOutput, error) {
-	ledger := ledgers.Ledgers{
+	ledger := ledger.Ledger{
 		LedgerCloseMeta: lcm,
 	}
 
