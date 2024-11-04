@@ -61,7 +61,7 @@ func (l Ledgers) LedgerVersion() uint32 {
 	return uint32(l.LedgerHeaderHistoryEntry().Header.LedgerVersion)
 }
 
-func (l Ledgers) GetSorobanFeeWrite1Kb() (int64, bool) {
+func (l Ledgers) SorobanFeeWrite1Kb() (int64, bool) {
 	lcmV1, ok := l.GetV1()
 	if ok {
 		extV1, ok := lcmV1.Ext.GetV1()
@@ -73,7 +73,7 @@ func (l Ledgers) GetSorobanFeeWrite1Kb() (int64, bool) {
 	return 0, false
 }
 
-func (l Ledgers) GetTotalByteSizeOfBucketList() (uint64, bool) {
+func (l Ledgers) TotalByteSizeOfBucketList() (uint64, bool) {
 	lcmV1, ok := l.GetV1()
 	if ok {
 		return uint64(lcmV1.TotalByteSizeOfBucketList), true
@@ -82,7 +82,7 @@ func (l Ledgers) GetTotalByteSizeOfBucketList() (uint64, bool) {
 	return 0, false
 }
 
-func (l Ledgers) GetNodeID() (string, bool) {
+func (l Ledgers) NodeID() (string, bool) {
 	LedgerCloseValueSignature, ok := l.LedgerHeaderHistoryEntry().Header.ScpValue.Ext.GetLcValueSignature()
 	if ok {
 		nodeID, ok := utils.GetAddress(LedgerCloseValueSignature.NodeId)
@@ -94,7 +94,7 @@ func (l Ledgers) GetNodeID() (string, bool) {
 	return "", false
 }
 
-func (l Ledgers) GetSignature() (string, bool) {
+func (l Ledgers) Signature() (string, bool) {
 	LedgerCloseValueSignature, ok := l.LedgerHeaderHistoryEntry().Header.ScpValue.Ext.GetLcValueSignature()
 	if ok {
 		return base64.StdEncoding.EncodeToString(LedgerCloseValueSignature.Signature), true
@@ -103,7 +103,8 @@ func (l Ledgers) GetSignature() (string, bool) {
 	return "", false
 }
 
-func (l Ledgers) GetTransactionCounts() (successTxCount, failedTxCount int32, ok bool) {
+// Add docstring to larger, more complicated functions
+func (l Ledgers) TransactionCounts() (successTxCount, failedTxCount int32, ok bool) {
 	transactions := getTransactionSet(l)
 	results := l.V0.TxProcessing
 	txCount := len(transactions)
@@ -122,7 +123,8 @@ func (l Ledgers) GetTransactionCounts() (successTxCount, failedTxCount int32, ok
 	return successTxCount, failedTxCount, true
 }
 
-func (l Ledgers) GetOperationCounts() (operationCount, txSetOperationCount int32, ok bool) {
+// Add docstring to larger, more complicated functions
+func (l Ledgers) OperationCounts() (operationCount, txSetOperationCount int32, ok bool) {
 	transactions := getTransactionSet(l)
 	results := l.V0.TxProcessing
 	txCount := len(transactions)

@@ -8,7 +8,7 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-type LedgerOutput struct {
+type LedgerClosedOutput struct {
 	Sequence                   uint32    `json:"sequence"` // sequence number of the ledger
 	LedgerHash                 string    `json:"ledger_hash"`
 	PreviousLedgerHash         string    `json:"previous_ledger_hash"`
@@ -32,51 +32,51 @@ type LedgerOutput struct {
 	TotalByteSizeOfBucketList  uint64    `json:"total_byte_size_of_bucket_list"`
 }
 
-func TransformLedger(lcm xdr.LedgerCloseMeta) (LedgerOutput, error) {
+func TransformLedger(lcm xdr.LedgerCloseMeta) (LedgerClosedOutput, error) {
 	ledger := ledgers.Ledgers{
 		LedgerCloseMeta: lcm,
 	}
 
 	outputLedgerHeader, err := xdr.MarshalBase64(ledger.LedgerHeaderHistoryEntry().Header)
 	if err != nil {
-		return LedgerOutput{}, err
+		return LedgerClosedOutput{}, err
 	}
 
-	outputSuccessfulTransactionCount, outputFailedTransactionCount, ok := ledger.GetTransactionCounts()
+	outputSuccessfulTransactionCount, outputFailedTransactionCount, ok := ledger.TransactionCounts()
 	if !ok {
-		return LedgerOutput{}, fmt.Errorf("could not get transaction counts")
+		return LedgerClosedOutput{}, fmt.Errorf("could not get transaction counts")
 	}
 
-	outputOperationCount, outputTxSetOperationCount, ok := ledger.GetOperationCounts()
+	outputOperationCount, outputTxSetOperationCount, ok := ledger.OperationCounts()
 	if !ok {
-		return LedgerOutput{}, fmt.Errorf("could not get operation counts")
+		return LedgerClosedOutput{}, fmt.Errorf("could not get operation counts")
 	}
 
 	var outputSorobanFeeWrite1Kb int64
-	sorobanFeeWrite1Kb, ok := ledger.GetSorobanFeeWrite1Kb()
+	sorobanFeeWrite1Kb, ok := ledger.SorobanFeeWrite1Kb()
 	if ok {
 		outputSorobanFeeWrite1Kb = sorobanFeeWrite1Kb
 	}
 
 	var outputTotalByteSizeOfBucketList uint64
-	totalByteSizeOfBucketList, ok := ledger.GetTotalByteSizeOfBucketList()
+	totalByteSizeOfBucketList, ok := ledger.TotalByteSizeOfBucketList()
 	if ok {
 		outputTotalByteSizeOfBucketList = totalByteSizeOfBucketList
 	}
 
 	var outputNodeID string
-	nodeID, ok := ledger.GetNodeID()
+	nodeID, ok := ledger.NodeID()
 	if ok {
 		outputNodeID = nodeID
 	}
 
 	var outputSigature string
-	signature, ok := ledger.GetSignature()
+	signature, ok := ledger.Signature()
 	if ok {
 		outputSigature = signature
 	}
 
-	ledgerOutput := LedgerOutput{
+	ledgerOutput := LedgerClosedOutput{
 		Sequence:                   ledger.LedgerSequence(),
 		LedgerHash:                 ledger.Hash(),
 		PreviousLedgerHash:         ledger.Hash(),
