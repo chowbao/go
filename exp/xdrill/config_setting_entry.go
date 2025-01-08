@@ -2,6 +2,7 @@ package xdrill
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/stellar/go/xdr"
 )
@@ -419,6 +420,30 @@ func (c ConfigSettingEntry) BucketFileOffset() uint64 {
 	}
 
 	return uint64(evictionIterator.BucketFileOffset)
+}
+
+func (c ConfigSettingEntry) Sponsor() string {
+	return c.change.Sponsor()
+}
+
+func (c ConfigSettingEntry) LastModifiedLedger() uint32 {
+	return c.change.LastModifiedLedger()
+}
+
+func (c ConfigSettingEntry) LedgerEntryChangeType() uint32 {
+	return c.change.Type()
+}
+
+func (c ConfigSettingEntry) Deleted() bool {
+	return c.change.Deleted()
+}
+
+func (c ConfigSettingEntry) ClosedAt() time.Time {
+	return c.change.ClosedAt()
+}
+
+func (c ConfigSettingEntry) Sequence() uint32 {
+	return c.change.Sequence()
 }
 
 func serializeCostParams(costParams xdr.ContractCostParams) []map[string]string {
