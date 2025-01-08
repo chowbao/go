@@ -807,7 +807,7 @@ func makeTradeTestOutput() [][]TradeOutput {
 		LiquidityPoolFee:       null.IntFrom(30),
 		HistoryOperationID:     101,
 		TradeType:              2,
-		RoundingSlippage:       null.IntFrom(100),
+		RoundingSlippage:       null.IntFrom(9223372036854775807),
 		SellerIsExact:          null.BoolFrom(true),
 	}
 
