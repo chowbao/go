@@ -3489,7 +3489,6 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 
 	admin := randAddr()
 	asset := xdr.MustNewCreditAsset("TESTER", admin)
-	nativeAsset := xdr.MustNewNativeAsset()
 	from, to := randAddr(), randAddr()
 	fromContractBytes, toContractBytes := xdr.Hash{}, xdr.Hash{1}
 	fromContract := strkey.MustEncode(strkey.VersionByteContract, fromContractBytes[:])
@@ -3691,7 +3690,7 @@ func TestInvokeHostFunctionEffects(t *testing.T) {
 			},
 		}, {
 			desc:      "transfer native",
-			asset:     nativeAsset,
+			asset:     xdr.MustNewNativeAsset(),
 			eventType: contractevents.EventTypeTransfer,
 			expected: []EffectOutput{
 				{

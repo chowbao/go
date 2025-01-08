@@ -38,7 +38,8 @@ func TransformOperation(operation xdr.Operation, operationIndex int32, transacti
 
 	var outputSourceAccountMuxed null.String
 	if sourceAccount.Type == xdr.CryptoKeyTypeKeyTypeMuxedEd25519 {
-		muxedAddress, err := sourceAccount.GetAddress()
+		var muxedAddress string
+		muxedAddress, err = sourceAccount.GetAddress()
 		if err != nil {
 			return OperationOutput{}, err
 		}
@@ -961,7 +962,7 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		details["reserve_a_deposit_amount"] = depositA
 
 		//Process ReserveB Details
-		if err := addAssetDetailsToOperationDetails(details, assetB, "reserve_b"); err != nil {
+		if err = addAssetDetailsToOperationDetails(details, assetB, "reserve_b"); err != nil {
 			return details, err
 		}
 		details["reserve_b_max_amount"] = ConvertStroopValueToReal(op.MaxAmountB)
@@ -971,10 +972,10 @@ func extractOperationDetails(operation xdr.Operation, transaction ingest.LedgerT
 		}
 		details["reserve_b_deposit_amount"] = depositB
 
-		if err := addPriceDetails(details, op.MinPrice, "min"); err != nil {
+		if err = addPriceDetails(details, op.MinPrice, "min"); err != nil {
 			return details, err
 		}
-		if err := addPriceDetails(details, op.MaxPrice, "max"); err != nil {
+		if err = addPriceDetails(details, op.MaxPrice, "max"); err != nil {
 			return details, err
 		}
 

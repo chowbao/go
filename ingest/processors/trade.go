@@ -172,11 +172,13 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 	switch operationType {
 	case xdr.OperationTypeManageBuyOffer:
 		var buyOfferResult xdr.ManageBuyOfferResult
+		var success xdr.ManageOfferSuccessResult
+
 		if buyOfferResult, ok = operationTr.GetManageBuyOfferResult(); !ok {
 			err = fmt.Errorf("could not get ManageBuyOfferResult for operation at index %d", operationIndex)
 			return
 		}
-		if success, ok := buyOfferResult.GetSuccess(); ok {
+		if success, ok = buyOfferResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
 			BuyingOffer = success.Offer.Offer
 			return
@@ -186,12 +188,13 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 	case xdr.OperationTypeManageSellOffer:
 		var sellOfferResult xdr.ManageSellOfferResult
+		var success xdr.ManageOfferSuccessResult
 		if sellOfferResult, ok = operationTr.GetManageSellOfferResult(); !ok {
 			err = fmt.Errorf("could not get ManageSellOfferResult for operation at index %d", operationIndex)
 			return
 		}
 
-		if success, ok := sellOfferResult.GetSuccess(); ok {
+		if success, ok = sellOfferResult.GetSuccess(); ok {
 			claimedOffers = success.OffersClaimed
 			BuyingOffer = success.Offer.Offer
 			return
@@ -216,13 +219,15 @@ func extractClaimedOffers(operationResults []xdr.OperationResult, operationIndex
 
 	case xdr.OperationTypePathPaymentStrictSend:
 		var pathSendResult xdr.PathPaymentStrictSendResult
+		var success xdr.PathPaymentStrictSendResultSuccess
+
 		sellerIsExact = null.BoolFrom(false)
 		if pathSendResult, ok = operationTr.GetPathPaymentStrictSendResult(); !ok {
 			err = fmt.Errorf("could not get PathPaymentStrictSendResult for operation at index %d", operationIndex)
 			return
 		}
 
-		success, ok := pathSendResult.GetSuccess()
+		success, ok = pathSendResult.GetSuccess()
 		if ok {
 			claimedOffers = success.Offers
 			return
@@ -262,7 +267,8 @@ func findTradeSellPrice(t ingest.LedgerTransaction, operationIndex int32, trade 
 	if err := key.SetOffer(trade.SellerId(), uint64(trade.OfferId())); err != nil {
 		return 0, 0, errors.Wrap(err, "Could not create offer ledger key")
 	}
-	change, err := findLatestOperationChange(t, operationIndex, key)
+	var change ingest.Change
+	change, err = findLatestOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, 0, errors.Wrap(err, "could not find change for trade offer")
 	}
@@ -281,7 +287,8 @@ func findLatestOperationChange(t ingest.LedgerTransaction, operationIndex int32,
 	for i := len(changes) - 1; i >= 0; i-- {
 		change = changes[i]
 		if change.Pre != nil {
-			preKey, err := change.Pre.LedgerKey()
+			var preKey xdr.LedgerKey
+			preKey, err = change.Pre.LedgerKey()
 			if err != nil {
 				return ingest.Change{}, errors.Wrap(err, "could not determine ledger key for change")
 
@@ -300,7 +307,8 @@ func findPoolFee(t ingest.LedgerTransaction, operationIndex int32, poolID xdr.Po
 	if err := key.SetLiquidityPool(poolID); err != nil {
 		return 0, errors.Wrap(err, "Could not create liquidity pool ledger key")
 	}
-	change, err := findLatestOperationChange(t, operationIndex, key)
+	var change ingest.Change
+	change, err = findLatestOperationChange(t, operationIndex, key)
 	if err != nil {
 		return 0, errors.Wrap(err, "could not find change for liquidity pool")
 	}
