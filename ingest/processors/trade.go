@@ -264,7 +264,7 @@ func findTradeSellPrice(t ingest.LedgerTransaction, operationIndex int32, trade 
 	}
 
 	key := xdr.LedgerKey{}
-	if err := key.SetOffer(trade.SellerId(), uint64(trade.OfferId())); err != nil {
+	if err = key.SetOffer(trade.SellerId(), uint64(trade.OfferId())); err != nil {
 		return 0, 0, errors.Wrap(err, "Could not create offer ledger key")
 	}
 	var change ingest.Change
@@ -304,7 +304,7 @@ func findLatestOperationChange(t ingest.LedgerTransaction, operationIndex int32,
 
 func findPoolFee(t ingest.LedgerTransaction, operationIndex int32, poolID xdr.PoolId) (fee uint32, err error) {
 	key := xdr.LedgerKey{}
-	if err := key.SetLiquidityPool(poolID); err != nil {
+	if err = key.SetLiquidityPool(poolID); err != nil {
 		return 0, errors.Wrap(err, "Could not create liquidity pool ledger key")
 	}
 	var change ingest.Change
