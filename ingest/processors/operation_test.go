@@ -1830,7 +1830,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"shares":                    0.0000004,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1896,7 +1896,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				},
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1924,7 +1924,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -1952,7 +1952,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -2004,7 +2004,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				},
 			},
 		},
-		OperationOutput{
+		{
 			Type:          24,
 			TypeString:    "invoke_host_function",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -2026,7 +2026,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          25,
 			TypeString:    "extend_footprint_ttl",
 			SourceAccount: hardCodedSourceAccountAddress,
@@ -2050,7 +2050,7 @@ func makeOperationTestOutputs() (transformedOperations []OperationOutput) {
 				"ledger_key_hash":    nilStringArray,
 			},
 		},
-		OperationOutput{
+		{
 			Type:          26,
 			TypeString:    "restore_footprint",
 			SourceAccount: hardCodedSourceAccountAddress,
