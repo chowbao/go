@@ -363,7 +363,7 @@ func (t *LedgerTransaction) SorobanResourcesWriteBytes() (uint32, bool) {
 	return uint32(sorobanData.Resources.WriteBytes), true
 }
 
-func (t *LedgerTransaction) InclusionFeeBid() (int64, bool) {
+func (t *LedgerTransaction) SorobanInclusionFeeBid() (int64, bool) {
 	resourceFee, ok := t.SorobanResourceFee()
 	if !ok {
 		return 0, false
@@ -410,13 +410,21 @@ func (t *LedgerTransaction) InclusionFeeCharged() (int64, bool) {
 		return inclusionFee, ok
 	}
 
-	// Inclusion fee for classic is just the base 100 stroops + surge pricing if surging
-	inclusionFee, ok = t.FeeCharged()
+	// Inclusion fee can be calculated from the equation:
+	// Fee charged = inclusion fee * (operation count + if(feeBumpAccount is not null, 1, 0))
+	// or inclusionFee = feeCharged/(operation count + if(feeBumpAccount is not null, 1, 0))
+	operationCount := t.OperationCount()
+	if t.Envelope.Type == 5 { // xdr.EnvelopeTypeEnvelopeTypeTxFeeBump
+		operationCount += 1
+	}
+
+	var feeCharged int64
+	feeCharged, ok = t.FeeCharged()
 	if !ok {
 		return 0, false
 	}
 
-	return inclusionFee, true
+	return feeCharged / int64(operationCount), true
 }
 
 func getAccountBalanceFromLedgerEntryChanges(changes xdr.LedgerEntryChanges, sourceAccountAddress string) (int64, int64) {
