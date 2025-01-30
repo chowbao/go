@@ -344,12 +344,7 @@ func (c Change) ExtractEntry() (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool
 }
 
 func (c Change) Deleted() (bool, error) {
-	_, _, deleted, err := c.ExtractEntry()
-	if err != nil {
-		return false, err
-	}
-
-	return deleted, nil
+	return c.LedgerEntryChangeType() == xdr.LedgerEntryChangeTypeEntryRemoved
 }
 
 func (c Change) ClosedAt() time.Time {
