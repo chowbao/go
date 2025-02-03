@@ -414,7 +414,7 @@ func (t *LedgerTransaction) InclusionFeeCharged() (int64, bool) {
 	// Fee charged = inclusion fee * (operation count + if(feeBumpAccount is not null, 1, 0))
 	// or inclusionFee = feeCharged/(operation count + if(feeBumpAccount is not null, 1, 0))
 	operationCount := t.OperationCount()
-	if t.Envelope.Type == 5 { // xdr.EnvelopeTypeEnvelopeTypeTxFeeBump
+	if t.Envelope.Type == xdr.EnvelopeTypeEnvelopeTypeTxFeeBump { 
 		operationCount += 1
 	}
 
