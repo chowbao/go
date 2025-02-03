@@ -194,11 +194,8 @@ func (t *LedgerTransaction) ID() int64 {
 }
 
 func (t *LedgerTransaction) Account() (string, error) {
-	sourceAccount := t.Envelope.SourceAccount()
-	providedID := sourceAccount.ToAccountId()
-	pointerToID := &providedID
-
-	return pointerToID.GetAddress()
+	sourceAccount := t.Envelope.SourceAccount().ToAccountId()
+	return sourceAccount.GetAddress()
 }
 
 func (t *LedgerTransaction) AccountSequence() int64 {
