@@ -27,7 +27,7 @@ func LiquidityPoolDetails(liquidityPoolEntry *xdr.LiquidityPoolEntry) (Liquidity
 
 	var err error
 	var liquidtiyPoolID string
-	liquidtiyPoolID, err = liquidityPoolEntry.LiquidityPoolId.MarshalBinaryBase64()
+	liquidtiyPoolID, err = xdr.MarshalBase64(liquidityPoolEntry.LiquidityPoolId)
 	if err != nil {
 		return LiquidityPool{}, err
 	}

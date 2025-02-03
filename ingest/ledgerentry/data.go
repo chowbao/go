@@ -14,7 +14,7 @@ func DataDetails(dataEntry *xdr.DataEntry) (Data, error) {
 		DataName:  string(dataEntry.DataName),
 	}
 
-	dataValue, err := dataEntry.DataValue.MarshalBinaryBase64()
+	dataValue, err := xdr.MarshalBase64(dataEntry.DataValue)
 	if err != nil {
 		return Data{}, err
 	}

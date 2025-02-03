@@ -37,7 +37,7 @@ func TrustlineDetails(trustlineEntry *xdr.TrustLineEntry) (Trustline, error) {
 	trustline.AssetType = assetType
 
 	var poolID string
-	poolID, err = trustlineEntry.Asset.LiquidityPoolId.MarshalBinaryBase64()
+	poolID, err = xdr.MarshalBase64(trustlineEntry.Asset.LiquidityPoolId)
 	if err != nil {
 		return Trustline{}, err
 	}

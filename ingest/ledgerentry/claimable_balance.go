@@ -28,7 +28,7 @@ func ClaimableBalanceDetails(claimableBalanceEntry *xdr.ClaimableBalanceEntry) (
 
 	var err error
 	var balanceID string
-	balanceID, err = claimableBalanceEntry.BalanceId.MarshalBinaryBase64()
+	balanceID, err = xdr.MarshalBase64(claimableBalanceEntry.BalanceId)
 	if err != nil {
 		return ClaimableBalance{}, err
 	}
