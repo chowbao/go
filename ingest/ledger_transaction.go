@@ -240,9 +240,12 @@ func (t *LedgerTransaction) OperationCount() uint32 {
 }
 
 func (t *LedgerTransaction) Memo() string {
+	var memoContents string
 	memoObject := t.Envelope.Memo()
-	memoContents := ""
+
 	switch xdr.MemoType(memoObject.Type) {
+	case xdr.MemoTypeMemoNone:
+		memoContents = ""
 	case xdr.MemoTypeMemoText:
 		memoContents = memoObject.MustText()
 	case xdr.MemoTypeMemoId:
@@ -253,6 +256,8 @@ func (t *LedgerTransaction) Memo() string {
 	case xdr.MemoTypeMemoReturn:
 		hash := memoObject.MustRetHash()
 		memoContents = base64.StdEncoding.EncodeToString(hash[:])
+	default:
+		panic(fmt.Errorf("unknown MemoType %d", memoObject.Type))
 	}
 
 	return memoContents
@@ -319,8 +324,24 @@ func (t *LedgerTransaction) GetSorobanData() (xdr.SorobanTransactionData, bool) 
 		return t.Envelope.V1.Tx.Ext.GetSorobanData()
 	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
 		return t.Envelope.FeeBump.Tx.InnerTx.V1.Tx.Ext.GetSorobanData()
-	default:
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
 		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypeScp:
+		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypeAuth:
+		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypeScpvalue:
+		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypeOpId:
+		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypePoolRevokeOpId:
+		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypeContractId:
+		return xdr.SorobanTransactionData{}, false
+	case xdr.EnvelopeTypeEnvelopeTypeSorobanAuthorization:
+		return xdr.SorobanTransactionData{}, false
+	default:
+		panic(fmt.Errorf("unknown EnvelopeType %d", t.Envelope.Type))
 	}
 }
 
@@ -379,8 +400,24 @@ func (t *LedgerTransaction) FeeAccountAddress() (string, bool) {
 		feeBumpAccount := t.Envelope.FeeBumpAccount()
 		feeAccountAddress := feeBumpAccount.Address()
 		return feeAccountAddress, true
-	default:
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
 		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypeScp:
+		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypeAuth:
+		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypeScpvalue:
+		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypeOpId:
+		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypePoolRevokeOpId:
+		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypeContractId:
+		return "", false
+	case xdr.EnvelopeTypeEnvelopeTypeSorobanAuthorization:
+		return "", false
+	default:
+		panic(fmt.Errorf("unknown EnvelopeType %d", t.Envelope.Type))
 	}
 }
 
@@ -411,7 +448,7 @@ func (t *LedgerTransaction) InclusionFeeCharged() (int64, bool) {
 	// Fee charged = inclusion fee * (operation count + if(feeBumpAccount is not null, 1, 0))
 	// or inclusionFee = feeCharged/(operation count + if(feeBumpAccount is not null, 1, 0))
 	operationCount := t.OperationCount()
-	if t.Envelope.Type == xdr.EnvelopeTypeEnvelopeTypeTxFeeBump { 
+	if t.Envelope.Type == xdr.EnvelopeTypeEnvelopeTypeTxFeeBump {
 		operationCount += 1
 	}
 
@@ -448,6 +485,12 @@ func getAccountBalanceFromLedgerEntryChanges(changes xdr.LedgerEntryChanges, sou
 			if accountEntry.AccountId.Address() == sourceAccountAddress {
 				accountBalanceStart = int64(accountEntry.Balance)
 			}
+		case xdr.LedgerEntryChangeTypeLedgerEntryCreated:
+			continue
+		case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
+			continue
+		default:
+			panic(fmt.Errorf("unknown ChangeType %d", change.Type))
 		}
 	}
 
@@ -481,7 +524,7 @@ func (t *LedgerTransaction) SorobanTotalNonRefundableResourceFeeCharged() (int64
 	case 1:
 		return int64(meta.SorobanMeta.Ext.V1.TotalNonRefundableResourceFeeCharged), true
 	default:
-		return 0, false
+		panic(fmt.Errorf("unknown SorobanMeta.Ext.V %d", meta.SorobanMeta.Ext.V))
 	}
 }
 
@@ -495,7 +538,7 @@ func (t *LedgerTransaction) SorobanTotalRefundableResourceFeeCharged() (int64, b
 	case 1:
 		return int64(meta.SorobanMeta.Ext.V1.TotalRefundableResourceFeeCharged), true
 	default:
-		return 0, false
+		panic(fmt.Errorf("unknown SorobanMeta.Ext.V %d", meta.SorobanMeta.Ext.V))
 	}
 }
 
@@ -509,7 +552,7 @@ func (t *LedgerTransaction) SorobanRentFeeCharged() (int64, bool) {
 	case 1:
 		return int64(meta.SorobanMeta.Ext.V1.RentFeeCharged), true
 	default:
-		return 0, false
+		panic(fmt.Errorf("unknown SorobanMeta.Ext.V %d", meta.SorobanMeta.Ext.V))
 	}
 }
 
