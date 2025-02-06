@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"sort"
+	"time"
 
+	"github.com/stellar/go/ingest/ledger"
+	"github.com/stellar/go/ingest/ledgerentry"
 	"github.com/stellar/go/support/errors"
 	"github.com/stellar/go/xdr"
 )
@@ -326,4 +329,129 @@ func (c Change) AccountChangedExceptSigners() (bool, error) {
 	}
 
 	return !bytes.Equal(preBinary, postBinary), nil
+}
+
+func (c Change) ExtractEntry() (xdr.LedgerEntry, xdr.LedgerEntryChangeType, bool, error) {
+	switch changeType := c.LedgerEntryChangeType(); changeType {
+	case xdr.LedgerEntryChangeTypeLedgerEntryCreated, xdr.LedgerEntryChangeTypeLedgerEntryUpdated:
+		return *c.Post, changeType, false, nil
+	case xdr.LedgerEntryChangeTypeLedgerEntryRemoved:
+		return *c.Pre, changeType, true, nil
+	default:
+		return xdr.LedgerEntry{}, changeType, false, fmt.Errorf("unable to extract ledger entry type from change")
+	}
+}
+
+func (c Change) Deleted() bool {
+	return c.LedgerEntryChangeType() == xdr.LedgerEntryChangeTypeLedgerEntryRemoved
+}
+
+func (c Change) ClosedAt() time.Time {
+	if c.Ledger != nil {
+		return ledger.ClosedAt(*c.Ledger)
+	}
+
+	return ledger.ClosedAt(c.Transaction.Ledger)
+}
+
+func (c Change) Sequence() uint32 {
+	if c.Ledger != nil {
+		return ledger.Sequence(*c.Ledger)
+	}
+
+	return ledger.Sequence(c.Transaction.Ledger)
+}
+
+func (c Change) LastModifiedLedger() (uint32, error) {
+	ledgerEntry, _, _, err := c.ExtractEntry()
+	if err != nil {
+		return 0, err
+	}
+
+	return uint32(ledgerEntry.LastModifiedLedgerSeq), nil
+}
+
+func (c Change) Sponsor() (string, error) {
+	ledgerEntry, _, _, err := c.ExtractEntry()
+	if err != nil {
+		return "", err
+	}
+
+	if ledgerEntry.SponsoringID() == nil {
+		return "", nil
+	}
+
+	return ledgerEntry.SponsoringID().Address(), nil
+}
+
+func (c Change) LedgerKeyHash() (string, error) {
+	ledgerKey, err := c.LedgerKey()
+	if err != nil {
+		return "", err
+	}
+
+	return ledgerKey.MarshalBinaryBase64()
+}
+
+func (c Change) EntryDetails(passphrase string) (interface{}, error) {
+	var err error
+	var ledgerEntry xdr.LedgerEntry
+	var details interface{}
+
+	ledgerEntry, _, _, err = c.ExtractEntry()
+	if err != nil {
+		return nil, err
+	}
+
+	switch ledgerEntry.Data.Type {
+	case xdr.LedgerEntryTypeAccount:
+		details, err = ledgerentry.AccountDetails(ledgerEntry.Data.Account)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeTrustline:
+		details, err = ledgerentry.TrustlineDetails(ledgerEntry.Data.TrustLine)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeOffer:
+		details, err = ledgerentry.OfferDetails(ledgerEntry.Data.Offer)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeData:
+		details, err = ledgerentry.DataDetails(ledgerEntry.Data.Data)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeClaimableBalance:
+		details, err = ledgerentry.ClaimableBalanceDetails(ledgerEntry.Data.ClaimableBalance)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeLiquidityPool:
+		details, err = ledgerentry.LiquidityPoolDetails(ledgerEntry.Data.LiquidityPool)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeContractData:
+		details, err = ledgerentry.ContractDataDetails(passphrase, ledgerEntry.Data.ContractData)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeContractCode:
+		details, err = ledgerentry.ContractCodeDetails(ledgerEntry.Data.ContractCode)
+		if err != nil {
+			return details, err
+		}
+	case xdr.LedgerEntryTypeTtl:
+		details, err = ledgerentry.TtlDetails(ledgerEntry.Data.Ttl)
+		if err != nil {
+			return details, err
+		}
+	default:
+		return details, fmt.Errorf("unknown LedgerEntry data type")
+	}
+
+	return details, nil
 }
