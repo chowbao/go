@@ -1,4 +1,4 @@
-package contractdata
+package contract
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/stellar/go/ingest"
-	contractevent "github.com/stellar/go/ingest/processors/contract_event_processor"
 	utils "github.com/stellar/go/ingest/processors/processor_utils"
 	"github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
@@ -129,8 +128,8 @@ func (t *TransformContractDataStruct) TransformContractData(ledgerChange ingest.
 
 	ledgerSequence := header.Header.LedgerSeq
 
-	outputKey, outputKeyDecoded := contractevent.SerializeScVal(contractData.Key)
-	outputVal, outputValDecoded := contractevent.SerializeScVal(contractData.Val)
+	outputKey, outputKeyDecoded := SerializeScVal(contractData.Key)
+	outputVal, outputValDecoded := SerializeScVal(contractData.Val)
 
 	outputContractDataXDR, err := xdr.MarshalBase64(contractData)
 	if err != nil {

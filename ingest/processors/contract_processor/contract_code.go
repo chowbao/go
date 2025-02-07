@@ -1,4 +1,4 @@
-package contractcode
+package contract
 
 import (
 	"fmt"

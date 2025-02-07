@@ -1251,7 +1251,7 @@ func (operation *TransactionOperationWrapper) getSponsor() (*xdr.AccountId, erro
 	return nil, nil
 }
 
-var errLiquidityPoolChangeNotFound = errors.New("liquidity pool change not found")
+var ErrLiquidityPoolChangeNotFound = errors.New("liquidity pool change not found")
 
 func (operation *TransactionOperationWrapper) GetLiquidityPoolAndProductDelta(lpID *xdr.PoolId) (*xdr.LiquidityPoolEntry, *liquidityPoolDelta, error) {
 	changes, err := operation.Transaction.GetOperationChanges(operation.Index)
@@ -1299,7 +1299,7 @@ func (operation *TransactionOperationWrapper) GetLiquidityPoolAndProductDelta(lp
 		return lp, delta, nil
 	}
 
-	return nil, nil, errLiquidityPoolChangeNotFound
+	return nil, nil, ErrLiquidityPoolChangeNotFound
 }
 
 // OperationResult returns the operation's result record

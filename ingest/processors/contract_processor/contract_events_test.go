@@ -1,4 +1,4 @@
-package contractevents
+package contract
 
 import (
 	"testing"

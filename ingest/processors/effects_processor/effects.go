@@ -1273,7 +1273,7 @@ func (e *effectsWrapper) addLiquidityPoolRevokedEffect() error {
 	source := e.operation.SourceAccount()
 	lp, delta, err := e.operation.GetLiquidityPoolAndProductDelta(nil)
 	if err != nil {
-		if err == errors.New("liquidity pool change not found") {
+		if err == operations.ErrLiquidityPoolChangeNotFound {
 			// no revocation happened
 			return nil
 		}
