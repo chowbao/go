@@ -1,4 +1,4 @@
-package processors
+package trustline
 
 import (
 	"encoding/base64"

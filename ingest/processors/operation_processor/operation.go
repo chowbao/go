@@ -1,4 +1,4 @@
-package processors
+package operation
 
 import (
 	"encoding/base64"

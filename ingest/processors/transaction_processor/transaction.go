@@ -1,4 +1,4 @@
-package processors
+package transaction
 
 import (
 	"encoding/base64"
