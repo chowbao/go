@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func (o *LedgerOperation) RevokeSponsorshipDetails() (RevokeSponsorshipDetail, e
 
 	switch op.Type {
 	case xdr.RevokeSponsorshipTypeRevokeSponsorshipLedgerEntry:
-		ledgerKeyDetail, err := addLedgerKeyToDetails(*op.LedgerKey)
+		ledgerKeyDetail, err := addLedgerKey(*op.LedgerKey)
 		if err != nil {
 			return RevokeSponsorshipDetail{}, err
 		}

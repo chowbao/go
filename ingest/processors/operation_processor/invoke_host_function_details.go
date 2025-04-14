@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 import (
 	"fmt"
@@ -72,7 +72,7 @@ func (o *LedgerOperation) InvokeHostFunctionDetails() (InvokeHostFunctionDetail,
 
 		invokeHostFunctionDetail.Type = "create_contract"
 
-		preImageDetails, err := switchContractIdPreimageType(args.ContractIdPreimage)
+		preImageDetails, err := switchContractIdPreimage(args.ContractIdPreimage)
 		if err != nil {
 			return InvokeHostFunctionDetail{}, nil
 		}
@@ -92,7 +92,7 @@ func (o *LedgerOperation) InvokeHostFunctionDetails() (InvokeHostFunctionDetail,
 
 		invokeHostFunctionDetail.Type = "create_contract_v2"
 
-		preImageDetails, err := switchContractIdPreimageType(args.ContractIdPreimage)
+		preImageDetails, err := switchContractIdPreimage(args.ContractIdPreimage)
 		if err != nil {
 			return InvokeHostFunctionDetail{}, err
 		}
@@ -118,7 +118,7 @@ func (o *LedgerOperation) getCreateContractDetails(invokeHostFunctionDetail *Inv
 	invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashFromTxEnvelope()
 
 	var contractID string
-	contractID, ok = o.Transaction.contractIdFromTxEnvelope()
+	contractID, ok = o.Transaction.ContractIdFromTxEnvelope()
 	if ok {
 		invokeHostFunctionDetail.ContractID = contractID
 	}

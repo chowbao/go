@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 import (
 	"fmt"
@@ -34,11 +34,11 @@ func (o *LedgerOperation) SetOptionsDetails() (SetOptionsDetails, error) {
 	}
 
 	if op.SetFlags != nil && *op.SetFlags > 0 {
-		setOptionsDetail.SetFlags, setOptionsDetail.SetFlagsString = addOperationFlagToOperationDetails(uint32(*op.SetFlags))
+		setOptionsDetail.SetFlags, setOptionsDetail.SetFlagsString = addOperationFlagToOperation(uint32(*op.SetFlags))
 	}
 
 	if op.ClearFlags != nil && *op.ClearFlags > 0 {
-		setOptionsDetail.ClearFlags, setOptionsDetail.ClearFlagsString = addOperationFlagToOperationDetails(uint32(*op.ClearFlags))
+		setOptionsDetail.ClearFlags, setOptionsDetail.ClearFlagsString = addOperationFlagToOperation(uint32(*op.ClearFlags))
 	}
 
 	if op.MasterWeight != nil {
@@ -69,7 +69,7 @@ func (o *LedgerOperation) SetOptionsDetails() (SetOptionsDetails, error) {
 	return setOptionsDetail, nil
 }
 
-func addOperationFlagToOperationDetails(flag uint32) ([]int32, []string) {
+func addOperationFlagToOperation(flag uint32) ([]int32, []string) {
 	intFlags := make([]int32, 0)
 	stringFlags := make([]string, 0)
 

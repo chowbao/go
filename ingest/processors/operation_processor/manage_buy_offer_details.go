@@ -1,11 +1,11 @@
-package ingest
+package operation
 
 import (
 	"fmt"
 	"strconv"
 )
 
-type ManageSellOffer struct {
+type ManageBuyOffer struct {
 	OfferID            int64   `json:"offer_id,string"`
 	Amount             int64   `json:"amount,string"`
 	PriceN             int32   `json:"price_n"`
@@ -19,45 +19,44 @@ type ManageSellOffer struct {
 	SellingAssetType   string  `json:"selling_asset_type"`
 }
 
-func (o *LedgerOperation) ManageSellOfferDetails() (ManageSellOffer, error) {
-	op, ok := o.Operation.Body.GetManageSellOfferOp()
+func (o *LedgerOperation) ManageBuyOfferDetails() (ManageBuyOffer, error) {
+	op, ok := o.Operation.Body.GetManageBuyOfferOp()
 	if !ok {
-		return ManageSellOffer{}, fmt.Errorf("could not access ManageSellOffer info for this operation (index %d)", o.OperationIndex)
+		return ManageBuyOffer{}, fmt.Errorf("could not access ManageBuyOffer info for this operation (index %d)", o.OperationIndex)
 	}
 
-	manageSellOffer := ManageSellOffer{
+	manageBuyOffer := ManageBuyOffer{
 		OfferID: int64(op.OfferId),
-		Amount:  int64(op.Amount),
+		Amount:  int64(op.BuyAmount),
 		PriceN:  int32(op.Price.N),
 		PriceD:  int32(op.Price.D),
 	}
 
 	var err error
-	manageSellOffer.Price, err = strconv.ParseFloat(op.Price.String(), 64)
+	manageBuyOffer.Price, err = strconv.ParseFloat(op.Price.String(), 64)
 	if err != nil {
-		return ManageSellOffer{}, err
+		return ManageBuyOffer{}, err
 	}
 
 	var buyingAssetCode, buyingAssetIssuer, buyingAssetType string
 	err = op.Buying.Extract(&buyingAssetType, &buyingAssetCode, &buyingAssetIssuer)
 	if err != nil {
-		return ManageSellOffer{}, err
+		return ManageBuyOffer{}, err
 	}
 
-	manageSellOffer.BuyingAssetCode = buyingAssetCode
-	manageSellOffer.BuyingAssetIssuer = buyingAssetIssuer
-	manageSellOffer.BuyingAssetType = buyingAssetType
+	manageBuyOffer.BuyingAssetCode = buyingAssetCode
+	manageBuyOffer.BuyingAssetIssuer = buyingAssetIssuer
+	manageBuyOffer.BuyingAssetType = buyingAssetType
 
 	var sellingAssetCode, sellingAssetIssuer, sellingAssetType string
 	err = op.Selling.Extract(&sellingAssetType, &sellingAssetCode, &sellingAssetIssuer)
 	if err != nil {
-		return ManageSellOffer{}, err
+		return ManageBuyOffer{}, err
 	}
 
-	manageSellOffer.SellingAssetCode = sellingAssetCode
-	manageSellOffer.SellingAssetIssuer = sellingAssetIssuer
-	manageSellOffer.SellingAssetType = sellingAssetType
+	manageBuyOffer.SellingAssetCode = sellingAssetCode
+	manageBuyOffer.SellingAssetIssuer = sellingAssetIssuer
+	manageBuyOffer.SellingAssetType = sellingAssetType
 
-	return manageSellOffer, nil
-
+	return manageBuyOffer, nil
 }

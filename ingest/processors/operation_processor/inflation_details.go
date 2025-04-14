@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 type InflationDetail struct{}
 

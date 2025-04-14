@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 import (
 	"fmt"
@@ -50,11 +50,7 @@ func (o *LedgerOperation) LiquidityPoolDepositDetails() (LiquidityPoolDepositDet
 	}
 
 	var err error
-	var liquidityPoolID string
-	liquidityPoolID, err = PoolIDToString(op.LiquidityPoolId)
-	if err != nil {
-		return LiquidityPoolDepositDetail{}, err
-	}
+	liquidityPoolID := PoolIDToString(op.LiquidityPoolId)
 
 	liquidityPoolDepositDetail.LiquidityPoolID = liquidityPoolID
 

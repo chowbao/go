@@ -618,22 +618,6 @@ func (t *LedgerTransaction) Successful() bool {
 	return t.Result.Successful()
 }
 
-func (t *LedgerTransaction) GetOperations(networkPassphrase string) []LedgerOperation {
-	var ledgerOperations []LedgerOperation
-
-	for i, operation := range t.Envelope.Operations() {
-		ledgerOperation := LedgerOperation{
-			OperationIndex:    int32(i),
-			Operation:         operation,
-			Transaction:       t,
-			NetworkPassphrase: networkPassphrase,
-		}
-		ledgerOperations = append(ledgerOperations, ledgerOperation)
-	}
-
-	return ledgerOperations
-}
-
 func (t *LedgerTransaction) GetTransactionV1Envelope() (xdr.TransactionV1Envelope, bool) {
 	switch t.Envelope.Type {
 	case xdr.EnvelopeTypeEnvelopeTypeTx:
@@ -723,7 +707,7 @@ func (t *LedgerTransaction) contractCodeFromContractData(ledgerKey xdr.LedgerKey
 	return codeHash, true
 }
 
-func (t *LedgerTransaction) contractIdFromTxEnvelope() (string, bool) {
+func (t *LedgerTransaction) ContractIdFromTxEnvelope() (string, bool) {
 	v1Envelope, ok := t.GetTransactionV1Envelope()
 	if !ok {
 		return "", false

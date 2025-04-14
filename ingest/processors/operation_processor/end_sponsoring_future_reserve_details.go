@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 type EndSponsoringFutureReserveDetail struct {
 	BeginSponsor        string `json:"begin_sponsor"`

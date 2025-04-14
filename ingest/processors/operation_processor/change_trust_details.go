@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 import (
 	"fmt"
@@ -76,10 +76,7 @@ func getLiquidityPoolAssetDetails(lpp xdr.LiquidityPoolParameters) (string, stri
 		return "", "", err
 	}
 
-	poolIDString, err = PoolIDToString(poolID)
-	if err != nil {
-		return "", "", err
-	}
+	poolIDString = PoolIDToString(poolID)
 
 	return "liquidity_pool_shares", poolIDString, nil
 }

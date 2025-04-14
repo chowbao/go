@@ -1,4 +1,4 @@
-package ingest
+package operation
 
 import "fmt"
 
@@ -23,7 +23,7 @@ func (o *LedgerOperation) ExtendFootprintTtlDetails() (ExtendFootprintTtlDetail,
 	}
 
 	var contractID string
-	contractID, ok = o.Transaction.contractIdFromTxEnvelope()
+	contractID, ok = o.Transaction.ContractIdFromTxEnvelope()
 	if ok {
 		extendFootprintTtlDetail.ContractID = contractID
 	}
