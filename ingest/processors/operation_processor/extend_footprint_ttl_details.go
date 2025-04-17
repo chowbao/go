@@ -19,7 +19,7 @@ func (o *LedgerOperation) ExtendFootprintTtlDetails() (ExtendFootprintTtlDetail,
 	extendFootprintTtlDetail := ExtendFootprintTtlDetail{
 		Type:          "extend_footprint_ttl",
 		ExtendTo:      uint32(op.ExtendTo),
-		LedgerKeyHash: o.Transaction.LedgerKeyHashFromTxEnvelope(),
+		LedgerKeyHash: o.Transaction.LedgerKeyHashesFromSorobanFootprint(),
 	}
 
 	var contractID string
@@ -29,7 +29,7 @@ func (o *LedgerOperation) ExtendFootprintTtlDetails() (ExtendFootprintTtlDetail,
 	}
 
 	var contractCodeHash string
-	contractCodeHash, ok = o.Transaction.ContractCodeHashFromTxEnvelope()
+	contractCodeHash, ok = o.Transaction.ContractCodeHashFromSorobanFootprint()
 	if ok {
 		extendFootprintTtlDetail.ContractCodeHash = contractCodeHash
 	}

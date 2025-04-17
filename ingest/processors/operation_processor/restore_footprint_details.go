@@ -17,7 +17,7 @@ func (o *LedgerOperation) RestoreFootprintDetails() (RestoreFootprintDetail, err
 
 	restoreFootprintDetail := RestoreFootprintDetail{
 		Type:          "restore_footprint",
-		LedgerKeyHash: o.Transaction.LedgerKeyHashFromTxEnvelope(),
+		LedgerKeyHash: o.Transaction.LedgerKeyHashesFromSorobanFootprint(),
 	}
 
 	var contractID string
@@ -27,7 +27,7 @@ func (o *LedgerOperation) RestoreFootprintDetails() (RestoreFootprintDetail, err
 	}
 
 	var contractCodeHash string
-	contractCodeHash, ok = o.Transaction.ContractCodeHashFromTxEnvelope()
+	contractCodeHash, ok = o.Transaction.ContractCodeHashFromSorobanFootprint()
 	if ok {
 		restoreFootprintDetail.ContractCodeHash = contractCodeHash
 	}

@@ -2,6 +2,9 @@ package xdr
 
 import "fmt"
 
+// MapOperationResultTr returns a string representation of the result code for the operation.
+// Each operation type corresponds to a specific result struct (e.g., CreateAccountResult, PaymentResult, ...)
+// This function extracts and returns the result code's string value.
 func (o OperationResultTr) MapOperationResultTr() (string, error) {
 	var operationTraceDescription string
 	operationType := o.Type

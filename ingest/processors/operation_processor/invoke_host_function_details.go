@@ -46,11 +46,11 @@ func (o *LedgerOperation) InvokeHostFunctionDetails() (InvokeHostFunctionDetail,
 			return InvokeHostFunctionDetail{}, err
 		}
 
-		invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashFromTxEnvelope()
+		invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashesFromSorobanFootprint()
 		invokeHostFunctionDetail.ContractID = contractId
 
 		var contractCodeHash string
-		contractCodeHash, ok = o.Transaction.ContractCodeHashFromTxEnvelope()
+		contractCodeHash, ok = o.Transaction.ContractCodeHashFromSorobanFootprint()
 		if ok {
 			invokeHostFunctionDetail.ContractCodeHash = contractCodeHash
 		}
@@ -80,10 +80,10 @@ func (o *LedgerOperation) InvokeHostFunctionDetails() (InvokeHostFunctionDetail,
 		o.getCreateContractDetails(&invokeHostFunctionDetail, preImageDetails)
 	case xdr.HostFunctionTypeHostFunctionTypeUploadContractWasm:
 		invokeHostFunctionDetail.Type = "upload_wasm"
-		invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashFromTxEnvelope()
+		invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashesFromSorobanFootprint()
 
 		var contractCodeHash string
-		contractCodeHash, ok = o.Transaction.ContractCodeHashFromTxEnvelope()
+		contractCodeHash, ok = o.Transaction.ContractCodeHashFromSorobanFootprint()
 		if ok {
 			invokeHostFunctionDetail.ContractCodeHash = contractCodeHash
 		}
@@ -115,7 +115,7 @@ func (o *LedgerOperation) InvokeHostFunctionDetails() (InvokeHostFunctionDetail,
 
 func (o *LedgerOperation) getCreateContractDetails(invokeHostFunctionDetail *InvokeHostFunctionDetail, preImageDetails PreImageDetails) {
 	var ok bool
-	invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashFromTxEnvelope()
+	invokeHostFunctionDetail.LedgerKeyHash = o.Transaction.LedgerKeyHashesFromSorobanFootprint()
 
 	var contractID string
 	contractID, ok = o.Transaction.ContractIdFromTxEnvelope()
@@ -124,7 +124,7 @@ func (o *LedgerOperation) getCreateContractDetails(invokeHostFunctionDetail *Inv
 	}
 
 	var contractCodeHash string
-	contractCodeHash, ok = o.Transaction.ContractCodeHashFromTxEnvelope()
+	contractCodeHash, ok = o.Transaction.ContractCodeHashFromSorobanFootprint()
 	if ok {
 		invokeHostFunctionDetail.ContractCodeHash = contractCodeHash
 	}

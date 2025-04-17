@@ -632,7 +632,7 @@ func (t *LedgerTransaction) GetTransactionV1Envelope() (xdr.TransactionV1Envelop
 	}
 }
 
-func (t *LedgerTransaction) LedgerKeyHashFromTxEnvelope() []string {
+func (t *LedgerTransaction) LedgerKeyHashesFromSorobanFootprint() []string {
 	var ledgerKeyHash []string
 
 	v1Envelope, ok := t.GetTransactionV1Envelope()
@@ -663,7 +663,7 @@ func (t *LedgerTransaction) LedgerKeyHashFromTxEnvelope() []string {
 	return ledgerKeyHash
 }
 
-func (t *LedgerTransaction) ContractCodeHashFromTxEnvelope() (string, bool) {
+func (t *LedgerTransaction) ContractCodeHashFromSorobanFootprint() (string, bool) {
 	v1Envelope, ok := t.GetTransactionV1Envelope()
 	if !ok {
 		return "", false
